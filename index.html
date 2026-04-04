@@ -1,117 +1,153 @@
 <!DOCTYPE html>
-<html lang="ar" dir="ltr">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Pro - Multi-Stores</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Management-Stors V7 | ERP Multi-Magasin Pièces Auto</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        @media print { body * { visibility: hidden; } .print-area, .print-area * { visibility: visible; } .print-area { position: absolute; top: 0; left: 0; width: 100%; } .no-print { display: none; } }
+        .alert-low-stock { background-color: #ffedd5; border-left: 6px solid #f97316; animation: pulseOrange 1s infinite; }
+        @keyframes pulseOrange { 0% { border-left-color: #f97316; } 100% { border-left-color: #ffb347; } }
+        .card-hover:hover { transform: translateY(-2px); transition: all 0.2s ease; }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans">
-
-    <nav class="bg-indigo-700 text-white p-4 shadow-lg">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold flex items-center gap-2">
-                <i class="fas fa-chart-line"></i> SMART GESTION
-            </h1>
-            <div class="space-x-4">
-                <button onclick="showTab('dashboard')" class="hover:bg-indigo-600 px-3 py-2 rounded">Dashboard</button>
-                <button onclick="showTab('store1')" class="hover:bg-indigo-600 px-3 py-2 rounded">Ma7al 1</button>
-                <button onclick="showTab('store2')" class="hover:bg-indigo-600 px-3 py-2 rounded">Ma7al 2</button>
+<body class="bg-gray-100">
+    <div id="app">
+        <div id="authSection" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-800 to-indigo-900">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl w-96">
+                <div class="text-center mb-6"><i class="fas fa-car-side text-5xl text-indigo-600"></i><h1 class="text-2xl font-bold">Management-Stors V7</h1><p class="text-gray-500">ERP Multi-Magasin | Pièces Auto</p></div>
+                <div id="loginForm"><input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 border rounded-lg mb-3"><input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full p-3 border rounded-lg mb-4"><button id="loginBtn" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Connexion</button></div>
+                <p class="text-center text-sm mt-4 text-gray-500">Super Admin : admin@store.com / admin123</p>
             </div>
         </div>
-    </nav>
-
-    <main class="container mx-auto mt-8 p-4">
-        
-        <div id="dashboard" class="tab-content">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Tableau de Bord Général</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-                    <p class="text-sm text-gray-500 uppercase font-bold">Ventes Totales (MAD)</p>
-                    <p class="text-3xl font-bold text-gray-800">45,200.00</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-                    <p class="text-sm text-gray-500 uppercase font-bold">Stock Global</p>
-                    <p class="text-3xl font-bold text-gray-800">1,240 <span class="text-sm font-normal text-gray-400">Unités</span></p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
-                    <p class="text-sm text-gray-500 uppercase font-bold">Bénéfice Net</p>
-                    <p class="text-3xl font-bold text-gray-800">12,300.00</p>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-xl shadow-md border">
-                <h3 class="text-lg font-semibold mb-4">Comparaison des Revenus (Ma7al 1 vs Ma7al 2)</h3>
-                <canvas id="mainChart" style="max-height: 300px;"></canvas>
-            </div>
+        <div id="dashboardSection" class="hidden">
+            <div class="bg-white shadow-md px-6 py-3 flex justify-between items-center sticky top-0 z-30"><div class="flex items-center space-x-3"><i class="fas fa-warehouse text-indigo-600 text-2xl"></i><h1 class="text-xl font-bold">Management-Stors ERP</h1><span id="roleBadge" class="bg-gray-200 text-xs px-2 py-1 rounded-full"></span></div><div class="flex items-center gap-4"><span id="storeSelectorContainer"></span><button id="logoutBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm">Déconnexion</button></div></div>
+            <div class="flex flex-wrap gap-2 bg-gray-100 px-4 pt-4 border-b" id="tabNav"></div>
+            <div id="mainContent" class="p-6"></div>
         </div>
-
-        <div id="store1" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 italic">Gestion : Ma7al 1</h2>
-                <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">+ Ajouter Vente</button>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-4 rounded-lg shadow border">
-                    <h3 class="font-bold mb-4 text-indigo-700">Stock Ma7al 1</h3>
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-100">
-                            <tr><th class="p-2">Produit</th><th class="p-2">Qte</th><th class="p-2">Prix</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr class="border-b"> <td class="p-2">Article A</td> <td class="p-2">15</td> <td class="p-2">200 MAD</td> </tr>
-                            <tr class="border-b"> <td class="p-2">Article B</td> <td class="p-2 text-red-500">3 (Bas)</td> <td class="p-2">150 MAD</td> </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow border">
-                    <h3 class="font-bold mb-4 text-indigo-700">Comptabilité Séparée (1)</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between"><span>Entrées:</span> <span class="text-green-600 font-bold">+22,000 MAD</span></div>
-                        <div class="flex justify-between"><span>Sorties:</span> <span class="text-red-600 font-bold">-5,000 MAD</span></div>
-                        <hr>
-                        <div class="flex justify-between font-bold text-lg"><span>Solde:</span> <span>17,000 MAD</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="store2" class="tab-content hidden">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800 italic">Gestion : Ma7al 2</h2>
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-                <p class="text-yellow-700">Interface dyal l-Ma7al 2 (Gestion de stock o hsabat bochadha).</p>
-            </div>
-            </div>
-
-    </main>
-
+    </div>
     <script>
-        // Switch Tabs Logic
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
+        // ==================== CONFIGURATION FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_PROJECT.firebaseapp.com",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_PROJECT.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "VOTRE_APP_ID"
+        };
+        let app, auth, db;
+        try {
+            if (firebaseConfig.apiKey !== "VOTRE_API_KEY") {
+                app = firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+            } else { console.warn("⚠️ Configurez Firebase"); alert("Configuration Firebase requise"); }
+        } catch(e) { console.error(e); }
+
+        let currentUser = null, currentUserRole = null, currentStoreId = null, permissions = { hidePurchasePrice: false }, storesList = [], productsUnsubscribe = null, activeTab = "dashboard";
+        const authSection = document.getElementById('authSection'), dashboardSection = document.getElementById('dashboardSection');
+
+        async function loadUserFromFirestore(user) { if (!db) return null; const doc = await db.collection('users').doc(user.uid).get(); if (!doc.exists) return null; const data = doc.data(); return { uid: user.uid, email: user.email, role: data.role, assignedStoreId: data.storeId, permissions: data.permissions || {} }; }
+        async function initFirstSuperAdmin() { if (!db) return; const snapshot = await db.collection('users').where('role', '==', 'super_admin').get(); if (snapshot.empty) { try { const userCred = await auth.createUserWithEmailAndPassword('admin@store.com', 'admin123'); await db.collection('users').doc(userCred.user.uid).set({ email: 'admin@store.com', role: 'super_admin', storeId: null, permissions: {}, createdAt: new Date() }); console.log("Super Admin créé"); } catch(e) { console.warn(e); } } }
+        async function loadStores() { if(!db) return []; const snap = await db.collection('stores').get(); storesList = snap.docs.map(d => ({ id: d.id, ...d.data() })); if(storesList.length === 0 && currentUserRole === 'super_admin') { await db.collection('stores').add({ name: "Magasin Central", location: "Casablanca", createdAt: new Date() }); await db.collection('stores').add({ name: "Magasin Sud", location: "Marrakech", createdAt: new Date() }); await loadStores(); } return storesList; }
+        function startRealTimeListeners() { if(productsUnsubscribe) productsUnsubscribe(); if(!db) return; let query = db.collection('inventory'); if(currentUserRole !== 'super_admin' && currentStoreId) query = query.where('storeId', '==', currentStoreId); productsUnsubscribe = query.onSnapshot(() => { renderCurrentTab(); }); }
+        async function logAction(msg) { if(db) await db.collection('actionLogs').add({ action: msg, user: currentUser?.email, timestamp: new Date() }); }
+
+        async function renderDashboardHome(container) {
+            let lowStock = [];
+            const q = db.collection('inventory');
+            const snap = await (currentUserRole !== 'super_admin' ? q.where('storeId', '==', currentStoreId) : q).get();
+            snap.forEach(d => { if(d.data().qty <= d.data().min_threshold) lowStock.push({id:d.id, ...d.data()}); });
+            container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white p-5 rounded-xl shadow"><h2 class="text-xl font-bold mb-3">🚨 Alertes Stock Faible</h2>${lowStock.length ? lowStock.map(p => `<div class="alert-low-stock p-3 mb-2 rounded flex justify-between"><span><strong>${p.ref}</strong> - ${p.designation}</span><span class="text-orange-600 font-bold">Stock: ${p.qty} / Seuil: ${p.min_threshold}</span></div>`).join('') : '<p class="text-green-600">✅ Aucun produit sous seuil</p>'}</div><div class="bg-white p-5 rounded-xl shadow"><h2 class="text-xl font-bold mb-3">📈 Actions Rapides</h2><button onclick="document.querySelector('[data-tab=\"inventory\"]').click()" class="bg-indigo-100 w-full text-left p-2 rounded mb-2">➕ Gérer stock / Importer CSV</button><button onclick="document.querySelector('[data-tab=\"pos\"]').click()" class="bg-green-100 w-full text-left p-2 rounded mb-2">🛒 Scanner & Vente</button><button onclick="document.querySelector('[data-tab=\"reorder\"]').click()" class="bg-yellow-100 w-full text-left p-2 rounded">📦 Voir articles à commander</button></div></div>`;
         }
 
-        // Chart Logic
-        const ctx = document.getElementById('mainChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-                datasets: [{
-                    label: 'Ma7al 1',
-                    data: [12000, 19000, 15000, 22000],
-                    backgroundColor: 'rgba(79, 70, 229, 0.7)'
-                }, {
-                    label: 'Ma7al 2',
-                    data: [8000, 15000, 12000, 23200],
-                    backgroundColor: 'rgba(16, 185, 129, 0.7)'
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+        async function renderInventory(container) {
+            let products = [];
+            const snap = await (currentUserRole !== 'super_admin' ? db.collection('inventory').where('storeId', '==', currentStoreId) : db.collection('inventory')).get();
+            snap.forEach(d => products.push({id:d.id, ...d.data()}));
+            container.innerHTML = `<div class="bg-white p-5 rounded-xl shadow"><div class="flex justify-between flex-wrap"><h2 class="text-2xl font-bold">Gestion Stock</h2><div><input type="file" id="csvUpload" accept=".csv" class="border"><button id="importCsvBtn" class="bg-green-600 text-white px-3 py-1 rounded">Importer CSV (Ref,Design,Qty,PrixAchat)</button></div></div><button id="addProductBtn" class="bg-indigo-600 text-white px-3 py-1 rounded mt-2 mb-3">➕ Nouvelle Pièce</button><table class="min-w-full border mt-3"><thead><tr><th>Ref</th><th>Désignation</th><th>Stock</th><th>Seuil Alerte</th><th>Prix Achat</th><th>Prix Vente</th><th>Actions</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div>`;
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = products.map(p => `<tr><td>${p.ref}</td><td>${p.designation}</td><td><input type="number" data-id="${p.id}" class="stockInput w-20 border" value="${p.qty}"></td><td><input type="number" data-thresh="${p.id}" class="thresholdInput w-20 border" value="${p.min_threshold||0}"></td><td>${permissions.hidePurchasePrice && currentUserRole==='store-manager' ? '****' : p.purchasePrice} DH</td><td>${p.salePrice} DH</td><td><button class="updateStockBtn text-blue-600" data-id="${p.id}">Mettre à jour</button> | <button class="deleteProductBtn text-red-600" data-id="${p.id}">🗑️</button></td></tr>`).join('');
+            document.getElementById('addProductBtn').onclick = () => addProductModal();
+            document.getElementById('importCsvBtn').onclick = () => importCSV();
+            document.querySelectorAll('.updateStockBtn').forEach(btn => btn.onclick = async (e) => { const pid = btn.dataset.id; const newQty = parseInt(document.querySelector(`.stockInput[data-id="${pid}"]`).value); const newThresh = parseInt(document.querySelector(`.thresholdInput[data-thresh="${pid}"]`).value); await db.collection('inventory').doc(pid).update({ qty: newQty, min_threshold: newThresh }); logAction(`Mise à jour stock ${pid}`); renderCurrentTab(); });
+            document.querySelectorAll('.deleteProductBtn').forEach(btn => btn.onclick = async () => { if(confirm("Supprimer ?")) await db.collection('inventory').doc(btn.dataset.id).delete(); logAction(`Produit supprimé`); renderCurrentTab(); });
+        }
+
+        async function addProductModal() {
+            const ref = prompt("Référence (code barre)");
+            const des = prompt("Désignation");
+            const qty = parseInt(prompt("Quantité initiale"));
+            const purchase = parseFloat(prompt("Prix Achat"));
+            const seuil = parseInt(prompt("Seuil d'alerte (ex: 3)"));
+            if(ref && des) { const salePrice = purchase * 1.20; await db.collection('inventory').add({ ref, designation: des, qty: qty||0, purchasePrice: purchase, salePrice: salePrice, min_threshold: seuil || 5, storeId: currentUserRole !== 'super_admin' ? currentStoreId : (storesList[0]?.id), createdAt: new Date() }); logAction(`Ajout produit ${ref}`); renderCurrentTab(); }
+        }
+
+        async function importCSV() {
+            const file = document.getElementById('csvUpload').files[0];
+            if(!file) return alert("Choisir fichier CSV");
+            const text = await file.text();
+            const rows = text.split("\n").slice(1);
+            for(let row of rows) { const cols = row.split(","); if(cols.length>=28) { const ref = cols[0].trim(); const designation = cols[1].trim(); const qty = parseInt(cols[3].trim()) || 0; const purchasePrice = parseFloat(cols[27].trim()) || 0; if(ref && designation) { const salePrice = purchasePrice * 1.20; await db.collection('inventory').add({ ref, designation, qty, purchasePrice, salePrice, min_threshold: 5, storeId: currentUserRole !== 'super_admin' ? currentStoreId : storesList[0]?.id }); } } }
+            alert("Import terminé"); renderCurrentTab();
+        }
+
+        let barcodeBuffer = "", barcodeTimeout = null;
+        function initBarcodeListener() { document.removeEventListener('keydown', barcodeKeyHandler); document.addEventListener('keydown', barcodeKeyHandler); }
+        function barcodeKeyHandler(e) { if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return; if (e.key === 'Enter') { if (barcodeBuffer.length > 3) { e.preventDefault(); addProductToCartByBarcode(barcodeBuffer); barcodeBuffer = ""; if(barcodeTimeout) clearTimeout(barcodeTimeout); } return; } if (e.key.length === 1) { barcodeBuffer += e.key; if(barcodeTimeout) clearTimeout(barcodeTimeout); barcodeTimeout = setTimeout(() => { barcodeBuffer = ""; }, 100); } }
+        let cartItems = [];
+        async function addProductToCartByBarcode(barcode) { let snap; if(currentUserRole !== 'super_admin' && currentStoreId) snap = await db.collection('inventory').where('ref', '==', barcode).where('storeId', '==', currentStoreId).get(); else snap = await db.collection('inventory').where('ref', '==', barcode).get(); if(snap.empty) { alert("Produit non trouvé"); return; } const product = { id: snap.docs[0].id, ...snap.docs[0].data() }; const existing = cartItems.find(i => i.id === product.id); if(existing) existing.qty++; else cartItems.push({ id: product.id, ref: product.ref, designation: product.designation, salePrice: product.salePrice, qty: 1, maxStock: product.qty }); renderCartUI(); }
+        function renderCartUI() { const cartDiv = document.getElementById('cartContainer'); if(!cartDiv) return; cartDiv.innerHTML = `<h3 class="font-bold">Panier</h3>${cartItems.map((item,idx)=>`<div class="flex justify-between border-b py-1"><span>${item.ref} - ${item.designation}</span><span>${item.qty} x ${item.salePrice} DH</span><button data-cartidx="${idx}" class="removeCartItem text-red-500">❌</button></div>`).join('')}<div class="font-bold mt-2">Total: ${cartItems.reduce((s,i)=>s+i.qty*i.salePrice,0)} DH</div><div class="mt-2 flex gap-2"><input id="customerName" placeholder="Nom client (crédit)" class="border p-1"><button id="sellCashBtn" class="bg-green-600 text-white px-3 py-1 rounded">Vente Espèce</button><button id="sellCreditBtn" class="bg-orange-600 text-white px-3 py-1 rounded">Vente à Crédit</button></div>`; document.querySelectorAll('.removeCartItem').forEach(btn=>btn.onclick=()=>{cartItems.splice(parseInt(btn.dataset.cartidx),1); renderCartUI();}); document.getElementById('sellCashBtn')?.addEventListener('click',()=>finalizeSale(false)); document.getElementById('sellCreditBtn')?.addEventListener('click',()=>finalizeSale(true)); }
+        async function finalizeSale(isCredit) { if(cartItems.length===0) return; const customer = document.getElementById('customerName')?.value || "Client inconnu"; for(let item of cartItems) { const productRef = db.collection('inventory').doc(item.id); const docSnap = await productRef.get(); const currentStock = docSnap.data().qty; if(currentStock < item.qty) { alert(`Stock insuffisant pour ${item.ref}`); return; } await productRef.update({ qty: currentStock - item.qty }); } const saleData = { items: cartItems, total: cartItems.reduce((s,i)=>s+i.qty*i.salePrice,0), customerName: customer, paid: !isCredit, date: new Date(), storeId: currentStoreId, sellerId: currentUser.uid }; await db.collection('sales').add(saleData); if(isCredit) await db.collection('debts').add({ customerName: customer, amount: saleData.total, paid: false, saleId: saleData.id, date: new Date() }); logAction(`Vente ${isCredit ? 'crédit' : 'espèce'} de ${cartItems.length} articles`); cartItems = []; renderCartUI(); renderCurrentTab(); }
+        async function renderPOS(container) { container.innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="bg-white p-5 rounded-xl shadow"><h2 class="text-xl font-bold">🔍 Scanner / Recherche IA</h2><input type="text" id="aiSearchInput" placeholder="Chercher 'pompe eau' ou 'radiateur'..." class="w-full p-3 border rounded"><div id="searchResults"></div></div><div id="cartContainer" class="bg-white p-5 rounded-xl shadow"></div></div>`; initBarcodeListener(); renderCartUI(); document.getElementById('aiSearchInput').addEventListener('input', async (e) => { const keyword = e.target.value.toLowerCase(); if(keyword.length<2) return; let q = db.collection('inventory'); if(currentUserRole !== 'super_admin' && currentStoreId) q = q.where('storeId', '==', currentStoreId); const snap = await q.get(); const results = snap.docs.map(d=>d.data()).filter(p=>p.designation.toLowerCase().includes(keyword) || p.ref.toLowerCase().includes(keyword)); document.getElementById('searchResults').innerHTML = results.slice(0,10).map(p=>`<div class="border p-2 mb-1 flex justify-between"><span>${p.ref} - ${p.designation} (${p.qty} dispo)</span><button data-ref="${p.ref}" class="addBySearchBtn bg-indigo-500 text-white px-2 rounded">➕ Ajouter</button></div>`).join(''); document.querySelectorAll('.addBySearchBtn').forEach(btn=>btn.onclick=()=>addProductToCartByBarcode(btn.dataset.ref)); }); }
+
+        async function renderReorderList(container) { const lowItems = []; const snap = await db.collection('inventory').get(); snap.forEach(d => { if(d.data().qty <= d.data().min_threshold) lowItems.push({id:d.id, ...d.data()}); }); let filtered = lowItems; if(currentUserRole !== 'super_admin') filtered = lowItems.filter(i => i.storeId === currentStoreId); container.innerHTML = `<div class="bg-white p-6 rounded-xl shadow"><h2 class="text-2xl font-bold mb-4">📋 Articles à Commander (Stock ≤ Seuil)</h2><table class="min-w-full border"><thead class="bg-gray-100"><tr><th>Magasin</th><th>Référence</th><th>Désignation</th><th>Stock Actuel</th><th>Seuil</th><th>Prix Achat</th></tr></thead><tbody>${filtered.map(p => `<tr><td>${storesList.find(s=>s.id===p.storeId)?.name || p.storeId}</td><td>${p.ref}</td><td>${p.designation}</td><td class="text-red-600 font-bold">${p.qty}</td><td>${p.min_threshold}</td><td>${permissions.hidePurchasePrice && currentUserRole==='store-manager' ? '***' : p.purchasePrice} DH</td></tr>`).join('')}</tbody></table><button id="exportReorderBtn" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">📎 Exporter CSV Commande Fournisseur</button></div>`; document.getElementById('exportReorderBtn')?.addEventListener('click', () => { let csvContent = "Référence,Désignation,Quantité à commander,Prix achat\n"+filtered.map(p=>`${p.ref},${p.designation},${Math.max(p.min_threshold - p.qty + 5,5)},${p.purchasePrice}`).join("\n"); const blob = new Blob([csvContent], {type: 'text/csv'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = "commandes_fournisseur.csv"; link.click(); }); }
+
+        async function renderTransfers(container) { container.innerHTML = `<div class="bg-white p-5 rounded-xl"><h2>🚚 Transfert Inter-Magasin</h2><select id="fromStore">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select><select id="toStore">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select><input id="transferRef" placeholder="Référence produit"><input id="transferQty" type="number" placeholder="Quantité"><button id="createTransferBtn" class="bg-blue-600 text-white p-2 rounded">Créer Transfert</button><div id="transfersList"></div></div>`; const transfersSnap = await db.collection('transfers').get(); const transfers = transfersSnap.docs.map(d=>d.data()); document.getElementById('transfersList').innerHTML = transfers.map(t=>`<div>${t.fromStore} → ${t.toStore} : ${t.ref} (${t.qty}) statut: ${t.status}</div>`).join(''); document.getElementById('createTransferBtn').onclick = async () => { const from = document.getElementById('fromStore').value, to = document.getElementById('toStore').value, ref = document.getElementById('transferRef').value, qty = parseInt(document.getElementById('transferQty').value); await db.collection('transfers').add({ fromStore: from, toStore: to, ref, qty, status: "en attente", createdAt: new Date() }); logAction(`Transfert ${ref}`); renderCurrentTab(); }; }
+        async function renderExpenses(container) { container.innerHTML = `<div class="bg-white p-5 rounded-xl"><h2>💰 Enregistrer Bon d'Achat Fournisseur</h2><input id="supplier" placeholder="Fournisseur"><input id="amountExp" type="number" placeholder="Montant"><input id="descExp" placeholder="Motif"><button id="addExpenseBtn" class="bg-yellow-600 text-white p-2 rounded">Ajouter Dépense</button><div id="expenseList"></div></div>`; const expSnap = await db.collection('expenses').get(); document.getElementById('expenseList').innerHTML = expSnap.docs.map(d=>`<div>${d.data().supplier} - ${d.data().amount} DH : ${d.data().desc}</div>`).join(''); document.getElementById('addExpenseBtn').onclick = async()=>{ await db.collection('expenses').add({ supplier:document.getElementById('supplier').value, amount:parseFloat(document.getElementById('amountExp').value), desc:document.getElementById('descExp').value, date:new Date() }); renderCurrentTab();}; }
+        async function renderCredits(container) { const debts = await db.collection('debts').where('paid','==',false).get(); container.innerHTML = `<div class="bg-white p-5 rounded-xl"><h2>💳 Crédits Clients</h2><table class="min-w-full"><tr><th>Client</th><th>Montant</th><th>Date</th><th>Action</th></tr>${debts.docs.map(d=>`<tr><td>${d.data().customerName}</td><td>${d.data().amount}</td><td>${d.data().date?.toDate?.()}</td><td><button data-id="${d.id}" class="payDebtBtn bg-green-500 text-white px-2 rounded">Marquer Payé</button></td></tr>`).join('')}</table></div>`; document.querySelectorAll('.payDebtBtn').forEach(btn=>btn.onclick=async()=>{ await db.collection('debts').doc(btn.dataset.id).update({paid:true}); renderCurrentTab();}); }
+        async function renderUsers(container) { container.innerHTML = `<div class="bg-white p-5 rounded-xl"><h2>Gestion utilisateurs (Super Admin)</h2><input id="newUserEmail" placeholder="Email"><select id="newUserRole"><option value="manager">Manager</option><option value="vendeur">Vendeur</option></select><select id="newUserStore">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select><button id="createUserBtn" class="bg-indigo-600 text-white p-2 rounded">Créer utilisateur</button><div id="usersList"></div></div>`; const usersSnap = await db.collection('users').get(); const users = usersSnap.docs.map(d=>d.data()); document.getElementById('usersList').innerHTML = users.map(u=>`<div>${u.email} - ${u.role} - magasin: ${u.storeId}</div>`).join(''); document.getElementById('createUserBtn').onclick = async () => { const email = document.getElementById('newUserEmail').value; const role = document.getElementById('newUserRole').value; const storeId = document.getElementById('newUserStore').value; const pwd = "password123"; const userCred = await auth.createUserWithEmailAndPassword(email, pwd); await db.collection('users').doc(userCred.user.uid).set({ email, role, storeId, permissions: { hidePurchasePrice: false }, createdAt: new Date() }); alert(`Utilisateur créé. Mot de passe: ${pwd}`); renderCurrentTab(); }; }
+        async function renderStores(container) { container.innerHTML = `<div class="bg-white p-5 rounded-xl"><h2>Gestion Magasins</h2><input id="storeName" placeholder="Nom"><input id="storeLocation" placeholder="Adresse"><button id="addStoreBtn" class="bg-green-600 text-white p-2 rounded">Ajouter magasin</button><div id="storesList"></div></div>`; document.getElementById('addStoreBtn').onclick = async () => { await db.collection('stores').add({ name: document.getElementById('storeName').value, location: document.getElementById('storeLocation').value, createdAt: new Date() }); loadStores(); renderCurrentTab(); }; document.getElementById('storesList').innerHTML = storesList.map(s=>`<div>${s.name} - ${s.location}</div>`).join(''); }
+        async function renderLogs(container) { const logs=await db.collection('actionLogs').orderBy('timestamp','desc').limit(50).get(); container.innerHTML = `<div class="bg-white p-5 rounded"><h2>Journaux d'actions</h2><ul>${logs.docs.map(l=>`<li>${l.data().action} - ${l.data().user} - ${l.data().timestamp?.toDate()}</li>`).join('')}</ul></div>`; }
+        async function renderReports(container) { container.innerHTML = `<div class="print-area bg-white p-5 rounded shadow"><h2 class="text-xl">Rapport Mensuel</h2><button onclick="window.print()" class="bg-gray-700 text-white p-2 rounded no-print">🖨️ Imprimer</button><div id="reportContent">Générer ici les rapports de ventes...</div></div>`; }
+
+        function renderDashboard() {
+            const tabNav = document.getElementById('tabNav');
+            const role = currentUserRole;
+            const tabs = [{ id: "dashboard", label: "📊 Tableau de Bord", roles: ["super_admin","store-manager","vendeur"] },{ id: "inventory", label: "📦 Stock & Pièces", roles: ["super_admin","store-manager","vendeur"] },{ id: "pos", label: "🛒 Vente (Scanner)", roles: ["super_admin","store-manager","vendeur"] },{ id: "reorder", label: "🔄 Commandes (Réassort)", roles: ["super_admin","store-manager"] },{ id: "transfers", label: "🚚 Transfert Inter-Magasin", roles: ["super_admin","store-manager"] },{ id: "expenses", label: "💰 Dépenses / Bons d'Achat", roles: ["super_admin","store-manager"] },{ id: "credits", label: "💳 Crédits Clients", roles: ["super_admin","store-manager","vendeur"] }];
+            if(role === "super_admin") tabs.push({ id: "stores", label: "🏢 Magasins", roles: ["super_admin"] },{ id: "users", label: "👥 Utilisateurs", roles: ["super_admin"] },{ id: "logs", label: "📜 Journaux", roles: ["super_admin"] },{ id: "reports", label: "📄 Rapports", roles: ["super_admin","store-manager"] });
+            else tabs.push({ id: "reports", label: "📄 Rapports", roles: ["store-manager"] });
+            tabNav.innerHTML = tabs.filter(t => t.roles.includes(role)).map(t => `<button data-tab="${t.id}" class="px-4 py-2 rounded-t-lg font-medium transition ${activeTab===t.id ? 'bg-white text-indigo-700 border-b-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-200'}">${t.label}</button>`).join('');
+            document.querySelectorAll('[data-tab]').forEach(btn => btn.onclick = () => { activeTab = btn.dataset.tab; renderDashboard(); });
+            const storeSelectorContainer = document.getElementById('storeSelectorContainer');
+            if(role === "super_admin" || role === "store-manager") { let selectedStoreId = currentStoreId; const storeOptions = storesList.map(s => `<option value="${s.id}" ${selectedStoreId===s.id ? 'selected' : ''}>${s.name}</option>`); storeSelectorContainer.innerHTML = `<select id="storeSelect" class="border rounded p-1 text-sm"><option value="">Tous (Admin)</option>${storeOptions}</select>`; document.getElementById('storeSelect').onchange = (e) => { currentStoreId = e.target.value || null; startRealTimeListeners(); renderCurrentTab(); }; } else storeSelectorContainer.innerHTML = `<span class="text-sm text-gray-600">${storesList.find(s=>s.id===currentStoreId)?.name || 'Magasin'}</span>`;
+            renderCurrentTab();
+        }
+        async function renderCurrentTab() {
+            const container = document.getElementById('mainContent');
+            if(activeTab === "dashboard") await renderDashboardHome(container);
+            else if(activeTab === "inventory") await renderInventory(container);
+            else if(activeTab === "pos") await renderPOS(container);
+            else if(activeTab === "reorder") await renderReorderList(container);
+            else if(activeTab === "transfers") await renderTransfers(container);
+            else if(activeTab === "expenses") await renderExpenses(container);
+            else if(activeTab === "credits") await renderCredits(container);
+            else if(activeTab === "stores") await renderStores(container);
+            else if(activeTab === "users") await renderUsers(container);
+            else if(activeTab === "logs") await renderLogs(container);
+            else if(activeTab === "reports") await renderReports(container);
+        }
+
+        loginBtn.onclick = async () => { const email = document.getElementById('loginEmail').value, pwd = document.getElementById('loginPassword').value; if (!auth) { alert("Firebase non configuré"); return; } try { const cred = await auth.signInWithEmailAndPassword(email, pwd); const userData = await loadUserFromFirestore(cred.user); if (!userData) { await auth.signOut(); alert("Compte non autorisé"); return; } currentUser = userData; currentUserRole = userData.role; currentStoreId = userData.assignedStoreId; if (userData.permissions) permissions.hidePurchasePrice = userData.permissions.hidePurchasePrice || false; await loadStores(); if (currentUserRole !== 'super_admin' && !currentStoreId && storesList.length) currentStoreId = storesList[0].id; renderDashboard(); authSection.classList.add('hidden'); dashboardSection.classList.remove('hidden'); startRealTimeListeners(); } catch (err) { alert("Erreur: " + err.message); } };
+        logoutBtn.onclick = async () => { if(auth) await auth.signOut(); authSection.classList.remove('hidden'); dashboardSection.classList.add('hidden'); if(productsUnsubscribe) productsUnsubscribe(); currentUser=null; };
+        auth.onAuthStateChanged(async(user)=>{ if(user) { const data = await loadUserFromFirestore(user); if(data){ currentUser=data; currentUserRole=data.role; currentStoreId=data.assignedStoreId; await loadStores(); renderDashboard(); authSection.classList.add('hidden'); dashboardSection.classList.remove('hidden'); startRealTimeListeners(); } else auth.signOut(); } else { authSection.classList.remove('hidden'); dashboardSection.classList.add('hidden'); } });
+        if(db) initFirstSuperAdmin();
     </script>
 </body>
 </html>

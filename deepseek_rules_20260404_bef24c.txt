@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSuperAdmin() { return request.auth.token.role == 'super_admin'; }
+    function isManager() { return request.auth.token.role == 'manager'; }
+    function isVendeur() { return request.auth.token.role == 'vendeur'; }
+    function getTokenStoreId() { return request.auth.token.storeId; }
+    function getEffectiveStoreId() { return getTokenStoreId() != null ? getTokenStoreId() : get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId; }
+    function documentBelongsToMyStore() { return resource.data.storeId == getEffectiveStoreId(); }
+    function writeStoreIdMatchesMyStore() { return request.resource.data.storeId == getEffectiveStoreId(); }
+
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && (isSuperAdmin() || (isManager() && request.resource.data.storeId == getEffectiveStoreId() && request.resource.data.role == 'vendeur'));
+      allow update: if request.auth != null && (isSuperAdmin() || userId == request.auth.uid || (isManager() && resource.data.storeId == getEffectiveStoreId()));
+      allow delete: if isSuperAdmin();
+    }
+    match /inventory/{docId} {
+      allow read: if request.auth != null && (isSuperAdmin() || (isManager() && documentBelongsToMyStore()) || (isVendeur() && (documentBelongsToMyStore() || true)));
+      allow write: if request.auth != null && (isSuperAdmin() || (isManager() && documentBelongsToMyStore() && writeStoreIdMatchesMyStore()));
+      // Masquer purchase_price pour vendeur lisant autre store (champ level security)
+      match /{document=**} {
+        allow read: if request.auth != null && (isSuperAdmin() || (isManager() && documentBelongsToMyStore()) || (isVendeur() && documentBelongsToMyStore()) || (isVendeur() && !documentBelongsToMyStore() && !('purchase_price' in resource.data) && !('profit' in resource.data)));
+      }
+    }
+    match /sales/{saleId} {
+      allow read: if request.auth != null && (isSuperAdmin() || (isManager() && resource.data.storeId == getEffectiveStoreId()) || (isVendeur() && resource.data.storeId == getEffectiveStoreId()));
+      allow write: if request.auth != null && (isSuperAdmin() || (isManager() && request.resource.data.storeId == getEffectiveStoreId()) || (isVendeur() && request.resource.data.storeId == getEffectiveStoreId() && request.resource.data.sellerId == request.auth.uid));
+    }
+    match /stores/{storeId} {
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
+    }
+    match /expenses/{docId} { allow read, write: if isSuperAdmin() || (isManager() && resource.data.storeId == getEffectiveStoreId()); }
+    match /debts/{docId} { allow read, write: if isSuperAdmin() || (isManager() && resource.data.storeId == getEffectiveStoreId()) || (isVendeur() && resource.data.storeId == getEffectiveStoreId()); }
+    match /transfers/{docId} { allow read, write: if isSuperAdmin() || isManager(); }
+    match /actionLogs/{docId} { allow read: if isSuperAdmin(); allow create: if request.auth != null; allow update, delete: if false; }
+  }
+}

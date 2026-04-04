@@ -1,0 +1,12 @@
+
+---
+
+## ✅ Prochaines étapes
+
+1. **Clonez** ce dépôt.
+2. **Remplacez** `VOTRE_API_KEY`, `VOTRE_PROJECT_ID` etc. dans `index.html`.
+3. **Déployez** les règles Firestore.
+4. **Ajoutez** les custom claims (important pour la sécurité).
+5. **Hébergez** l’application.
+
+Vous avez maintenant un ERP professionnel prêt pour la production.
