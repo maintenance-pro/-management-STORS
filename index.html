@@ -2,31 +2,15 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Management-Stors | Connexion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management-Stors | Diagnostic + Connexion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Firebase SDKs (Compat version) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <style>
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100">
 
     <div id="app">
         <!-- Écran de connexion -->
@@ -34,46 +18,35 @@
             <div class="bg-white p-8 rounded-2xl shadow-2xl w-96">
                 <div class="text-center mb-6">
                     <i class="fas fa-warehouse text-5xl text-indigo-600"></i>
-                    <h1 class="text-2xl font-bold mt-2">Management-Stors</h1>
+                    <h1 class="text-2xl font-bold">Management-Stors</h1>
                     <p class="text-gray-500">ERP Multi‑Magasin</p>
                 </div>
                 <div>
-                    <input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 border rounded-lg mb-3">
-                    <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full p-3 border rounded-lg mb-4">
+                    <input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 border rounded-lg mb-3" value="admin@store.com">
+                    <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full p-3 border rounded-lg mb-4" value="admin123">
                     <button id="loginBtn" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Connexion</button>
                 </div>
-                <div id="infoMessage" class="text-center text-sm text-gray-500 mt-3"></div>
+                <div id="infoMessage" class="text-center text-sm mt-3 p-2 rounded-lg bg-gray-100 text-gray-700"></div>
             </div>
         </div>
 
-        <!-- Dashboard (caché par défaut) -->
+        <!-- Dashboard (caché) -->
         <div id="dashboardSection" class="hidden">
             <div class="bg-white shadow px-6 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-chart-line text-indigo-600 text-2xl"></i>
-                    <h1 class="text-xl font-bold">Tableau de bord</h1>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span id="userRoleDisplay" class="bg-gray-200 px-3 py-1 rounded-full text-xs font-semibold"></span>
-                    <button id="logoutBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg">Déconnexion</button>
-                </div>
+                <h1 class="text-xl font-bold">✅ Dashboard Administrateur</h1>
+                <button id="logoutBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg">Déconnexion</button>
             </div>
             <div class="p-6">
-                <div class="bg-white rounded-xl shadow p-6 border-l-8 border-indigo-500">
+                <div class="bg-white rounded-xl shadow p-6">
                     <h2 class="text-2xl font-bold">Bienvenue, <span id="userNameSpan"></span> !</h2>
-                    <p class="text-gray-600 mt-2">Vous êtes connecté en tant que <strong id="roleSpan"></strong>.</p>
-                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-blue-50 p-4 rounded-lg"><i class="fas fa-boxes text-blue-600"></i> Gestion des stocks</div>
-                        <div class="bg-green-50 p-4 rounded-lg"><i class="fas fa-users text-green-600"></i> Utilisateurs</div>
-                        <div class="bg-yellow-50 p-4 rounded-lg"><i class="fas fa-chart-simple text-yellow-600"></i> Rapports</div>
-                    </div>
+                    <p class="text-green-600 mt-2">Accès super_admin accordé.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ==================== Configuration Firebase ====================
+        // ==================== CONFIGURATION FIREBASE ====================
         const firebaseConfig = {
             apiKey: "AIzaSyC6ra1yBkIcIHN5gOLGcc9128g0sTdA6g",
             authDomain: "stor-management.firebaseapp.com",
@@ -87,107 +60,152 @@
         // Initialisation
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const database = firebase.database();
+        const db = firebase.database();
 
-        // Références DOM
+        // Éléments DOM
         const authSection = document.getElementById('authSection');
         const dashboardSection = document.getElementById('dashboardSection');
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const infoMessage = document.getElementById('infoMessage');
 
-        // ========== 1. Fonction pour récupérer l'utilisateur depuis RTDB ==========
+        function setMessage(msg, isError = false) {
+            infoMessage.innerText = msg;
+            infoMessage.className = "text-center text-sm mt-3 p-2 rounded-lg " + (isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700");
+            console.log(msg);
+        }
+
+        // ========== 1. Création automatique du Super Admin ==========
+        async function ensureSuperAdminExists() {
+            setMessage("🔍 Vérification de la base de données...");
+            try {
+                // Tester la connexion à la base : lire la racine
+                const rootTest = await db.ref('.info/connected').once('value');
+                if (!rootTest.val()) {
+                    setMessage("❌ Impossible de se connecter à Realtime Database. Vérifiez les règles de sécurité.", true);
+                    return false;
+                }
+
+                const snapshot = await db.ref('users').once('value');
+                if (!snapshot.exists()) {
+                    setMessage("⚙️ Base vide. Création du compte Super Admin...");
+                    try {
+                        // Créer l'utilisateur dans Auth
+                        const userCred = await auth.createUserWithEmailAndPassword('admin@store.com', 'admin123');
+                        const uid = userCred.user.uid;
+                        // Enregistrer dans RTDB
+                        await db.ref('users/' + uid).set({
+                            name: 'Administrateur Principal',
+                            email: 'admin@store.com',
+                            role: 'super_admin',
+                            storeId: null,
+                            createdAt: new Date().toISOString()
+                        });
+                        setMessage("✅ Super Admin créé ! Connectez-vous avec admin@store.com / admin123");
+                        return true;
+                    } catch (err) {
+                        if (err.code === 'auth/email-already-exists') {
+                            // Le compte existe déjà dans Auth, on récupère l'UID et on met à jour la base
+                            const user = await auth.signInWithEmailAndPassword('admin@store.com', 'admin123');
+                            const uid = user.user.uid;
+                            await db.ref('users/' + uid).set({
+                                name: 'Administrateur Principal',
+                                email: 'admin@store.com',
+                                role: 'super_admin',
+                                storeId: null,
+                                createdAt: new Date().toISOString()
+                            });
+                            setMessage("✅ Base mise à jour. Vous pouvez vous connecter.");
+                            return true;
+                        } else {
+                            setMessage("❌ Erreur création: " + err.message, true);
+                            return false;
+                        }
+                    }
+                } else {
+                    setMessage("✅ Base déjà initialisée. Prêt pour la connexion.");
+                    return true;
+                }
+            } catch (err) {
+                console.error(err);
+                setMessage("⚠️ Erreur d'accès à la base. Vérifiez les règles de sécurité RTDB (doivent autoriser lecture/écriture).", true);
+                return false;
+            }
+        }
+
+        // ========== 2. Récupération utilisateur depuis RTDB ==========
         async function loadUserFromRTDB(uid) {
             try {
-                const snapshot = await database.ref('users/' + uid).once('value');
+                const snapshot = await db.ref('users/' + uid).once('value');
                 if (snapshot.exists()) {
-                    return snapshot.val(); // contient { name, role, storeId, email, ... }
+                    return snapshot.val();
                 } else {
-                    console.warn("Aucun utilisateur trouvé dans RTDB pour uid:", uid);
+                    console.warn("Aucune donnée pour uid", uid);
                     return null;
                 }
-            } catch (error) {
-                console.error("Erreur lecture RTDB:", error);
+            } catch (err) {
+                console.error("Erreur lecture RTDB:", err);
                 return null;
             }
         }
 
-        // ========== 2. Gestion de la connexion ==========
+        // ========== 3. Connexion ==========
         loginBtn.onclick = async () => {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-            infoMessage.innerText = "Connexion en cours...";
-            infoMessage.classList.remove('text-red-500');
-            infoMessage.classList.add('text-gray-500');
+            setMessage("🔐 Tentative de connexion...");
 
             try {
-                // Authentification Firebase
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                const uid = user.uid;
-
-                // Récupération des données dans Realtime Database
+                const userCred = await auth.signInWithEmailAndPassword(email, password);
+                const uid = userCred.user.uid;
                 const userData = await loadUserFromRTDB(uid);
 
                 if (!userData) {
-                    infoMessage.innerText = "❌ Compte non autorisé (données manquantes dans la base).";
-                    infoMessage.classList.add('text-red-500');
+                    setMessage("❌ Utilisateur authentifié mais non enregistré dans la base. Contactez l'admin.", true);
                     await auth.signOut();
                     return;
                 }
 
-                // Vérification du rôle (super_admin pour accéder au dashboard)
                 if (userData.role !== 'super_admin') {
-                    infoMessage.innerText = "⛔ Accès refusé : vous n'êtes pas administrateur.";
-                    infoMessage.classList.add('text-red-500');
+                    setMessage("⛔ Accès refusé : rôle '" + userData.role + "' non autorisé pour le dashboard.", true);
                     await auth.signOut();
                     return;
                 }
 
-                // Succès : afficher le dashboard
+                // Succès
                 document.getElementById('userNameSpan').innerText = userData.name || email;
-                document.getElementById('roleSpan').innerText = userData.role;
-                document.getElementById('userRoleDisplay').innerText = userData.role;
-
                 authSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
-                infoMessage.innerText = "";
-
-            } catch (error) {
-                console.error(error);
-                infoMessage.innerText = "❌ Email ou mot de passe incorrect.";
-                infoMessage.classList.add('text-red-500');
+                setMessage("✅ Connexion réussie !");
+            } catch (err) {
+                console.error(err);
+                setMessage("❌ Échec : " + (err.message || "Email ou mot de passe incorrect"), true);
             }
         };
 
-        // ========== 3. Déconnexion ==========
+        // ========== 4. Déconnexion ==========
         logoutBtn.onclick = async () => {
             await auth.signOut();
-            // Revenir à l'écran de connexion
             authSection.classList.remove('hidden');
             dashboardSection.classList.add('hidden');
-            document.getElementById('loginEmail').value = '';
-            document.getElementById('loginPassword').value = '';
-            infoMessage.innerText = "";
+            setMessage("Déconnecté.");
         };
 
-        // ========== 4. Vérifier l'état de l'authentification au chargement ==========
+        // ========== 5. État d'authentification persistant ==========
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Si un utilisateur est connecté, vérifier son existence dans RTDB
                 const userData = await loadUserFromRTDB(user.uid);
                 if (!userData || userData.role !== 'super_admin') {
-                    // Déconnecter si invalide
                     await auth.signOut();
                     authSection.classList.remove('hidden');
                     dashboardSection.classList.add('hidden');
+                    setMessage("Session expirée ou rôle invalide. Veuillez vous reconnecter.");
                 } else {
-                    // Afficher directement le dashboard
+                    // Déjà connecté, afficher dashboard directement
                     document.getElementById('userNameSpan').innerText = userData.name || user.email;
-                    document.getElementById('roleSpan').innerText = userData.role;
-                    document.getElementById('userRoleDisplay').innerText = userData.role;
                     authSection.classList.add('hidden');
                     dashboardSection.classList.remove('hidden');
+                    setMessage("Bienvenue " + userData.name);
                 }
             } else {
                 authSection.classList.remove('hidden');
@@ -195,32 +213,8 @@
             }
         });
 
-        // Optionnel : créer un super admin par défaut si la base est vide (pour faciliter le premier accès)
-        async function createDefaultSuperAdmin() {
-            const snapshot = await database.ref('users').once('value');
-            if (!snapshot.exists()) {
-                try {
-                    // Créer l'utilisateur dans Auth
-                    const userCred = await auth.createUserWithEmailAndPassword('admin@store.com', 'admin123');
-                    const uid = userCred.user.uid;
-                    // Enregistrer ses infos dans RTDB
-                    await database.ref('users/' + uid).set({
-                        name: 'Super Administrateur',
-                        email: 'admin@store.com',
-                        role: 'super_admin',
-                        storeId: null,
-                        createdAt: new Date().toISOString()
-                    });
-                    console.log("✅ Compte super_admin par défaut créé.");
-                    infoMessage.innerText = "✅ Compte admin créé. Connectez-vous avec admin@store.com / admin123";
-                } catch (err) {
-                    if (err.code !== 'auth/email-already-exists') {
-                        console.error("Erreur création super admin:", err);
-                    }
-                }
-            }
-        }
-        createDefaultSuperAdmin();
+        // Lancer la création du Super Admin au démarrage
+        ensureSuperAdminExists();
     </script>
 </body>
 </html>
