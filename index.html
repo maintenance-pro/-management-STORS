@@ -2,169 +2,176 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SMIA PRO | Management-Stors</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management-Stors | Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
-    <style>
-        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
-        .hidden { display: none; }
-        .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .btn-primary { background-color: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.3s; }
-        .btn-primary:hover { background-color: #1d4ed8; }
-    </style>
 </head>
-<body>
+<body class="bg-gray-900 text-white font-sans transition-colors duration-500">
 
-    <div id="authSection" class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-        <div class="card w-full max-w-md">
+    <div id="authSection" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
             <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-blue-600">SMIA PRO</h1>
-                <p class="text-gray-500">Maintenance Management System</p>
+                <div class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <i class="fas fa-lock text-2xl"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">CONNEXION</h1>
+                <p class="text-gray-400 mt-2 text-sm uppercase tracking-widest">Administration</p>
             </div>
             
-            <form id="loginForm" class="space-y-4">
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="email" required class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-xs font-semibold uppercase text-gray-500 mb-1 ml-1">Email Professionnel</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" id="loginEmail" placeholder="admin@stors.com" 
+                               class="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-500">
+                    </div>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Mot de passe</label>
-                    <input type="password" id="password" required class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-xs font-semibold uppercase text-gray-500 mb-1 ml-1">Mot de Passe</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                            <i class="fas fa-key"></i>
+                        </span>
+                        <input type="password" id="loginPass" placeholder="••••••••" 
+                               class="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-500">
+                    </div>
                 </div>
-                <div id="loginError" class="text-red-500 text-sm hidden">Email ou mot de passe incorrect.</div>
-                <button type="submit" class="w-full btn-primary font-bold text-lg">Se connecter</button>
-            </form>
+
+                <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transform active:scale-95 transition-all mt-2">
+                    SE CONNECTER
+                </button>
+            </div>
+
+            <div id="loginError" class="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-400 text-xs text-center hidden">
+                <i class="fas fa-exclamation-circle mr-1"></i> Email ou mot de passe incorrect.
+            </div>
         </div>
     </div>
 
-    <div id="dashboardSection" class="hidden min-h-screen bg-gray-50">
-        <nav class="bg-white shadow-md p-4 flex justify-between items-center px-8">
-            <h2 class="text-xl font-bold text-blue-700"><i class="fas fa-tools mr-2"></i>SMIA PRO Dashboard</h2>
-            <div class="flex items-center gap-4">
-                <span id="userNameDisplay" class="font-medium text-gray-700"></span>
-                <button onclick="logout()" class="text-red-500 hover:text-red-700 font-semibold"><i class="fas fa-sign-out-alt mr-1"></i>Déconnexion</button>
+    <div id="dashboardSection" class="hidden min-h-screen flex flex-col bg-gray-100 text-gray-900">
+        <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i class="fas fa-warehouse text-white text-lg"></i>
+                </div>
+                <span class="font-black text-xl tracking-tighter text-blue-900">MANAGEMENT-STORS</span>
             </div>
-        </nav>
+            <div class="flex items-center space-x-6">
+                <div class="text-right hidden sm:block">
+                    <p id="userNameDisplay" class="font-bold text-sm leading-none"></p>
+                    <p id="userRoleBadge" class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter"></p>
+                </div>
+                <button id="logoutBtn" class="bg-gray-100 hover:bg-red-50 text-red-600 p-2 rounded-full transition-colors border border-gray-200">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
 
-        <main class="p-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="card bg-blue-50 border-l-4 border-blue-500">
-                    <h3 class="text-gray-500 text-sm font-bold uppercase">Statut Système</h3>
-                    <p class="text-2xl font-bold text-blue-600">Connecté</p>
+        <main class="p-6 flex-grow">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white p-10 rounded-3xl shadow-xl border border-gray-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
+                    <h2 class="text-3xl font-black text-gray-800">Bienvenue, <span id="welcomeName" class="text-blue-600"></span>!</h2>
+                    <p class="text-gray-500 mt-2 text-lg">Votre session est active. Accès complet au système de gestion autorisé.</p>
+                    
+                    <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                            <p class="text-xs font-bold text-blue-400 uppercase">Statut</p>
+                            <p class="text-blue-900 font-bold">Session Sécurisée</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                            <p class="text-xs font-bold text-gray-400 uppercase">Base de Données</p>
+                            <p class="text-gray-900 font-bold">RTDB Europe-West1</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="card bg-green-50 border-l-4 border-green-500">
-                    <h3 class="text-gray-500 text-sm font-bold uppercase">Rôle</h3>
-                    <p id="userRoleDisplay" class="text-2xl font-bold text-green-600">--</p>
-                </div>
-                <div class="card bg-purple-50 border-l-4 border-purple-500">
-                    <h3 class="text-gray-500 text-sm font-bold uppercase">Unité</h3>
-                    <p id="userStoreDisplay" class="text-2xl font-bold text-purple-600">--</p>
-                </div>
-            </div>
-            
-            <div class="mt-10 card">
-                <h3 class="text-xl font-bold mb-4">Bienvenue dans votre gestion de maintenance</h3>
-                <p class="text-gray-600">L'interface complète de gestion des pièces et du stock est en cours de chargement...</p>
             </div>
         </main>
     </div>
 
     <script>
-        // === CONFIGURATION FIREBASE ===
+        // CONFIGURATION FIREBASE (M9ada b l-URL s7i7a)
         const firebaseConfig = {
-            apiKey: "AIzaSyC6ra1yBkIcICHN5gOLGcc9128gOsTdA6g",
+            apiKey: "AIzaSyC6ra1yBkIcIHN5gOLGcc9128g0sTdA6g",
             authDomain: "stor-management.firebaseapp.com",
             projectId: "stor-management",
             storageBucket: "stor-management.firebasestorage.app",
             messagingSenderId: "1080269685889",
             appId: "1:1080269685889:web:cfc06140be3b896f23b980",
-            databaseURL: "https://stor-management-default-rtdb.europe-west1.firebasedatabase.app",
-            measurementId: "G-QZ9W62HWQS"
+            measurementId: "G-QZ9W62HWQS",
+            databaseURL: "https://stor-management-default-rtdb.europe-west1.firebasedatabase.app"
         };
 
-        // Initialisation
-        const app = firebase.initializeApp(firebaseConfig);
+        // INITIALISATION
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.firestore();
-        const rtdb = firebase.database();
+        const db = firebase.database();
 
         const authSection = document.getElementById('authSection');
         const dashboardSection = document.getElementById('dashboardSection');
-        const loginForm = document.getElementById('loginForm');
-        const errorDiv = document.getElementById('loginError');
+        const loginError = document.getElementById('loginError');
 
-        // --- FONCTION DE LECTURE DEPUIS REALTIME DATABASE ---
-        async function loadUserFromRTDB(user) {
-            try {
-                const snapshot = await rtdb.ref('users/' + user.uid).once('value');
-                if (snapshot.exists()) {
-                    return snapshot.val();
-                }
-            } catch (e) {
-                console.error("Erreur RTDB:", e);
-            }
-            return null;
-        }
-
-        // --- GESTION DE LA CONNEXION ---
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        // GESTION DU LOGIN
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            loginError.classList.add('hidden');
 
             try {
-                errorDiv.classList.add('hidden');
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const userData = await loadUserFromRTDB(userCredential.user);
-
-                if (userData) {
-                    showDashboard(userData);
-                } else {
-                    await auth.signOut();
-                    alert("Accès refusé : Identifiant non trouvé dans la base de données.");
-                }
-            } catch (error) {
-                errorDiv.classList.remove('hidden');
-                console.error(error);
+                await auth.signInWithEmailAndPassword(email, pass);
+            } catch (err) {
+                console.error(err);
+                loginError.classList.remove('hidden');
             }
         });
 
-        // --- AFFICHAGE DU DASHBOARD ---
-        function showDashboard(userData) {
-            document.getElementById('userNameDisplay').textContent = userData.name || "Utilisateur";
-            document.getElementById('userRoleDisplay').textContent = userData.role || "N/A";
-            document.getElementById('userStoreDisplay').textContent = userData.storeId || "N/A";
-            
-            authSection.classList.add('hidden');
-            dashboardSection.classList.remove('hidden');
-        }
+        // GESTION DU LOGOUT
+        document.getElementById('logoutBtn').onclick = async () => {
+            await auth.signOut();
+            window.location.reload(); // Pour vider le cache proprement
+        };
 
-        // --- SURVEILLANCE DE L'ÉTAT DE CONNEXION ---
+        // SURVEILLANCE DE L'ÉTAT (Le cœur du système)
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                const userData = await loadUserFromRTDB(user);
-                if (userData) {
-                    showDashboard(userData);
+                // On va chercher Bilal dans la Realtime Database
+                try {
+                    const snapshot = await db.ref('users/' + user.uid).once('value');
+                    const userData = snapshot.val();
+
+                    if (userData) {
+                        // Affichage des infos
+                        document.getElementById('userNameDisplay').innerText = userData.name;
+                        document.getElementById('welcomeName').innerText = userData.name;
+                        document.getElementById('userRoleBadge').innerText = userData.role;
+
+                        // Switch d'interface
+                        authSection.classList.add('hidden');
+                        dashboardSection.classList.remove('hidden');
+                        document.body.classList.replace('bg-gray-900', 'bg-gray-100');
+                    } else {
+                        alert("Accès refusé: Vous n'êtes pas enregistré comme Administrateur.");
+                        auth.signOut();
+                    }
+                } catch (err) {
+                    console.error("Erreur Base de données:", err);
+                    auth.signOut();
                 }
             } else {
                 authSection.classList.remove('hidden');
                 dashboardSection.classList.add('hidden');
+                document.body.classList.replace('bg-gray-100', 'bg-gray-900');
             }
         });
-
-        // --- DÉCONNEXION ---
-        function logout() {
-            auth.signOut().then(() => {
-                window.location.reload();
-            });
-        }
     </script>
 </body>
 </html>
