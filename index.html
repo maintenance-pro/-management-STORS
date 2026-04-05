@@ -44,29 +44,31 @@
     </div>
 
     <script>
-        // ==================== CONFIGURATION CORRECTE ====================
+        // ==================== CONFIGURATION FIREBASE (CORRECTE) ====================
         const firebaseConfig = {
-            apiKey: "AIzaSyCbray1BkICN5gOL6cc9128gs1dA6g",
+            apiKey: "AIzaSyC6ra1yBkIcICHN5gOLGcc9128g0sTdA6g",
             authDomain: "stor-management.firebaseapp.com",
             databaseURL: "https://stor-management-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "stor-management",
             storageBucket: "stor-management.firebasestorage.app",
             messagingSenderId: "1080269685889",
-            appId: "1:1080269685889:web:cf0614ebe3b896f23b980"
+            appId: "1:1080269685889:web:cfc06140be3b896f23b980",
+            measurementId: "G-QZ9W62HWQS"
         };
 
-        // Initialisation
+        // Initialisation Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
 
+        // Éléments DOM
         const authSection = document.getElementById('authSection');
         const dashboardSection = document.getElementById('dashboardSection');
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const infoMessage = document.getElementById('infoMessage');
 
-        // Liste des emails autorisés comme super_admin
+        // Liste des emails autorisés comme super_admin (vous pouvez en ajouter)
         const AUTHORIZED_ADMINS = [
             'admin@store.com',
             'lihanbello05@gmail.com'
@@ -78,29 +80,36 @@
             console.log(msg);
         }
 
-        // Récupère ou crée l'utilisateur dans RTDB
+        // Récupère ou crée l'utilisateur dans Realtime Database
         async function getOrCreateUserInRTDB(user) {
             const uid = user.uid;
             const email = user.email;
-            const snapshot = await db.ref('users/' + uid).once('value');
-            if (snapshot.exists()) {
-                return snapshot.val();
-            } else {
-                if (AUTHORIZED_ADMINS.includes(email)) {
-                    const userData = {
-                        name: email.split('@')[0],
-                        email: email,
-                        role: 'super_admin',
-                        storeId: null,
-                        createdAt: new Date().toISOString()
-                    };
-                    await db.ref('users/' + uid).set(userData);
-                    setMessage("✅ Compte administrateur créé automatiquement.");
-                    return userData;
+            try {
+                const snapshot = await db.ref('users/' + uid).once('value');
+                if (snapshot.exists()) {
+                    return snapshot.val();
                 } else {
-                    setMessage("⛔ Accès refusé : email non autorisé.", true);
-                    return null;
+                    // Utilisateur authentifié mais absent de la base
+                    if (AUTHORIZED_ADMINS.includes(email)) {
+                        const userData = {
+                            name: email.split('@')[0],
+                            email: email,
+                            role: 'super_admin',
+                            storeId: null,
+                            createdAt: new Date().toISOString()
+                        };
+                        await db.ref('users/' + uid).set(userData);
+                        setMessage("✅ Compte administrateur créé automatiquement.");
+                        return userData;
+                    } else {
+                        setMessage("⛔ Accès refusé : votre email n'est pas autorisé.", true);
+                        return null;
+                    }
                 }
+            } catch (err) {
+                console.error("Erreur d'accès à la base:", err);
+                setMessage("❌ Impossible de lire la base de données. Vérifiez les règles de sécurité.", true);
+                return null;
             }
         }
 
@@ -125,6 +134,7 @@
                     return;
                 }
 
+                // Succès : afficher le dashboard
                 document.getElementById('userNameSpan').innerText = userData.name || email;
                 authSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
@@ -135,6 +145,7 @@
                 if (err.code === 'auth/user-not-found') errorMsg = "Aucun compte associé à cet email.";
                 else if (err.code === 'auth/wrong-password') errorMsg = "Mot de passe incorrect.";
                 else if (err.code === 'auth/invalid-email') errorMsg = "Email invalide.";
+                else if (err.code === 'auth/api-key-not-valid') errorMsg = "Clé API invalide. Vérifiez la configuration Firebase.";
                 setMessage("❌ " + errorMsg, true);
             }
         };
@@ -147,7 +158,7 @@
             setMessage("Déconnecté.");
         };
 
-        // État de l'authentification
+        // État de l'authentification (persistance)
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const userData = await getOrCreateUserInRTDB(user);
