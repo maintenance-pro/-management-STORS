@@ -3,43 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Stor-Management | ERP Temps Réel</title>
-    <!-- Google Fonts + Tailwind + Font Awesome -->
+    <title>Stor-Management | ERP Multi-Magasin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Firebase SDK (Realtime Database) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background-color: #f0f2f5; }
-        .card { background-color: #ffffff; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eaeef2; transition: all 0.2s; }
+        .card { background-color: #ffffff; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eaeef2; }
         .btn-primary { background-color: #0056b3; transition: all 0.2s; }
         .btn-primary:hover { background-color: #004099; transform: translateY(-1px); }
-        .btn-outline { border: 1px solid #d0d5dd; background: white; color: #1f2937; }
-        .btn-outline:hover { background-color: #f9fafb; }
-        .table-container { overflow-x: auto; border-radius: 0.75rem; border: 1px solid #eef2f6; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 0.9rem 1rem; background-color: #f9fafb; font-weight: 600; color: #1e293b; border-bottom: 1px solid #e2e8f0; }
-        td { padding: 0.8rem 1rem; border-bottom: 1px solid #edf2f7; color: #1f2937; }
         .badge { padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 600; }
         .badge-admin { background-color: #e0f2fe; color: #0369a1; }
         .badge-manager { background-color: #dcfce7; color: #15803d; }
         .badge-vendeur { background-color: #fef3c7; color: #b45309; }
-        input, select, textarea { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; background: white; transition: 0.2s; }
+        input, select { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; background: white; }
         input:focus, select:focus { outline: none; border-color: #0056b3; ring: 2px solid #0056b3; }
-        .tab { padding: 0.5rem 1rem; border-radius: 2rem; font-weight: 500; transition: 0.2s; cursor: pointer; }
+        .tab { padding: 0.5rem 1rem; border-radius: 2rem; font-weight: 500; cursor: pointer; }
         .tab-active { background-color: #0056b3; color: white; }
         .tab-inactive { background-color: #f1f5f9; color: #1e293b; }
-        .tab-inactive:hover { background-color: #e2e8f0; }
-        .alert-low { border-left: 4px solid #eab308; background-color: #fefce8; }
+        .table-container { overflow-x: auto; border-radius: 0.75rem; border: 1px solid #eef2f6; }
+        th { background-color: #f9fafb; font-weight: 600; padding: 0.9rem 1rem; border-bottom: 1px solid #e2e8f0; }
+        td { padding: 0.8rem 1rem; border-bottom: 1px solid #edf2f7; }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <!-- Login Section -->
+    <!-- Login -->
     <div id="authSection" class="flex items-center justify-center min-h-screen p-4">
         <div class="card w-full max-w-md p-8">
             <div class="text-center mb-6">
@@ -54,30 +47,25 @@
         </div>
     </div>
 
-    <!-- Dashboard Principal (caché après login) -->
+    <!-- Dashboard -->
     <div id="dashboardSection" class="hidden">
-        <!-- Header -->
         <div class="bg-white border-b border-gray-200 sticky top-0 z-20 px-6 py-3 flex flex-wrap justify-between items-center gap-3">
             <div class="flex items-center gap-3">
                 <i class="fas fa-cubes text-2xl text-[#0056b3]"></i>
                 <h1 class="text-xl font-bold text-gray-800">Stor‑Management</h1>
-                <span id="roleBadge" class="badge badge-admin hidden"></span>
+                <span id="roleBadge" class="badge hidden"></span>
             </div>
             <div class="flex items-center gap-4">
                 <span id="storeSelectorContainer"></span>
-                <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-sm transition">Déconnexion</button>
+                <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-sm">Déconnexion</button>
             </div>
         </div>
-
-        <!-- Tabs navigation -->
         <div class="px-6 pt-4 flex flex-wrap gap-2" id="tabNav"></div>
-
-        <!-- Contenu principal -->
         <div id="mainContent" class="p-6"></div>
     </div>
 
     <script>
-        // -------------------- CONFIGURATION FIREBASE --------------------
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyC6ra1yBkIcICHN5gOLGcc9128g0sTdA6g",
             authDomain: "stor-management.firebaseapp.com",
@@ -91,67 +79,43 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // État global
-        let currentUser = null;
-        let currentUserRole = null;
-        let currentStoreId = null;
-        let storesList = [];
-        let activeTab = "dashboard";
+        let currentUser = null, currentUserRole = null, currentStoreId = null, storesList = [], activeTab = "dashboard";
+        let productsCache = [];
+        let storesListener = null, usersListener = null, inventoryListener = null;
 
-        // Listeners temps réel (on stocke les off pour les nettoyer si besoin)
-        let storesListener = null;
-        let usersListener = null;
-        let inventoryListener = null;
-
-        // Éléments DOM
         const authSection = document.getElementById('authSection');
         const dashboardSection = document.getElementById('dashboardSection');
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const infoMessage = document.getElementById('infoMessage');
-
-        // Liste des admins autorisés à la création auto
         const AUTHORIZED_ADMINS = ['admin@store.com', 'lihanbello05@gmail.com'];
 
         function setMessage(msg, isError = false) {
-            if (infoMessage) {
-                infoMessage.innerText = msg;
-                infoMessage.className = `text-center text-sm mt-3 ${isError ? 'text-red-600' : 'text-gray-500'}`;
-            }
+            if (infoMessage) infoMessage.innerText = msg;
             console.log(msg);
         }
 
-        // ========== GESTION UTILISATEUR (création auto) ==========
+        // ========== CRÉATION / RÉCUPÉRATION UTILISATEUR ==========
         async function getOrCreateUserInRTDB(user) {
-            const uid = user.uid;
-            const email = user.email;
+            const uid = user.uid, email = user.email;
             const snapshot = await db.ref('users/' + uid).once('value');
             if (snapshot.exists()) return snapshot.val();
             if (AUTHORIZED_ADMINS.includes(email)) {
-                const userData = {
-                    name: email.split('@')[0],
-                    email: email,
-                    role: 'super_admin',
-                    storeId: null,
-                    createdAt: new Date().toISOString()
-                };
+                const userData = { name: email.split('@')[0], email, role: 'super_admin', storeId: null, createdAt: new Date().toISOString() };
                 await db.ref('users/' + uid).set(userData);
                 return userData;
             }
             return null;
         }
 
-        // ========== CHARGEMENT INITIAL DES MAGASINS (sync + temps réel) ==========
+        // ========== TEMPS RÉEL MAGASINS ==========
         function startStoresRealtime() {
             if (storesListener) storesListener.off();
             storesListener = db.ref('stores').on('value', (snapshot) => {
-                const stores = [];
-                snapshot.forEach(child => stores.push({ id: child.key, ...child.val() }));
-                storesList = stores;
-                // Si on est sur un onglet qui affiche les magasins, on rafraîchit
-                if (activeTab === 'stores') renderCurrentTab();
-                // Mise à jour du sélecteur de magasin dans le header
+                storesList = [];
+                snapshot.forEach(child => storesList.push({ id: child.key, ...child.val() }));
                 updateStoreSelector();
+                if (activeTab === 'stores') renderCurrentTab();
             });
         }
 
@@ -169,43 +133,32 @@
             }
         }
 
-        // ========== CHARGEMENT DES PRODUITS (temps réel) ==========
-        let productsCache = [];
+        // ========== PRODUITS TEMPS RÉEL ==========
         function startInventoryRealtime() {
             if (inventoryListener) inventoryListener.off();
             inventoryListener = db.ref('inventory').on('value', (snapshot) => {
-                const prods = [];
-                snapshot.forEach(child => prods.push({ id: child.key, ...child.val() }));
-                productsCache = prods;
-                // Si l'onglet actuel a besoin des produits, on rafraîchit
-                if (['inventory', 'pos', 'withdraw', 'reorder', 'history'].includes(activeTab)) {
-                    renderCurrentTab();
-                }
+                productsCache = [];
+                snapshot.forEach(child => productsCache.push({ id: child.key, ...child.val() }));
+                if (['inventory', 'pos', 'withdraw', 'reorder', 'history'].includes(activeTab)) renderCurrentTab();
             });
         }
 
-        // Fonction utilitaire pour récupérer les produits (depuis cache temps réel)
         async function getProducts(storeId = null) {
             let filtered = productsCache;
             if (storeId) filtered = filtered.filter(p => p.storeId === storeId);
             return filtered;
         }
 
-        // ========== HISTORIQUE / LOGS ==========
         async function logAction(action, details = {}) {
             if (!currentUser) return;
-            await db.ref('actionLogs').push().set({
-                action, user: currentUser.email, details, timestamp: new Date().toISOString()
-            });
+            await db.ref('actionLogs').push().set({ action, user: currentUser.email, details, timestamp: new Date().toISOString() });
         }
 
-        // ========== SORTIE DE STOCK INTELLIGENTE ==========
+        // ========== SORTIE STOCK ==========
         async function withdrawStock(productId, currentQty, withdrawQty, reason) {
-            if (withdrawQty <= 0) throw new Error("Quantité invalide");
-            if (withdrawQty > currentQty) throw new Error("Stock insuffisant");
+            if (withdrawQty <= 0 || withdrawQty > currentQty) throw new Error("Quantité invalide");
             const newQty = currentQty - withdrawQty;
             await db.ref('inventory/' + productId).update({ qty: newQty });
-            // Récupérer les infos produit pour l'historique
             const prod = productsCache.find(p => p.id === productId);
             await db.ref('history').push().set({
                 productId, productRef: prod?.ref, productName: prod?.designation,
@@ -216,30 +169,24 @@
             return newQty;
         }
 
-        // ========== RENDU DES ONGLETS ==========
+        // ========== RENDU PRINCIPAL ==========
         function renderDashboard() {
             const role = currentUserRole;
             const tabs = [
-                { id: "dashboard", label: "📊 Tableau de bord", roles: ["super_admin","store-manager","vendeur"] },
-                { id: "pos", label: "🛒 Vente / Scanner", roles: ["super_admin","store-manager","vendeur"] },
-                { id: "inventory", label: "📦 Gestion stock", roles: ["super_admin","store-manager","vendeur"] },
-                { id: "withdraw", label: "📤 Sortie de stock", roles: ["super_admin","store-manager"] },
+                { id: "dashboard", label: "📊 Dashboard", roles: ["super_admin","store-manager","vendeur"] },
+                { id: "pos", label: "🛒 Vente", roles: ["super_admin","store-manager","vendeur"] },
+                { id: "inventory", label: "📦 Stock", roles: ["super_admin","store-manager","vendeur"] },
+                { id: "withdraw", label: "📤 Sortie", roles: ["super_admin","store-manager"] },
                 { id: "history", label: "📜 Historique", roles: ["super_admin","store-manager"] },
                 { id: "reorder", label: "🔄 Réassort", roles: ["super_admin","store-manager"] },
-                { id: "transfers", label: "🚚 Transferts", roles: ["super_admin","store-manager"] },
-                { id: "expenses", label: "💰 Dépenses", roles: ["super_admin","store-manager"] },
-                { id: "credits", label: "💳 Crédits clients", roles: ["super_admin","store-manager","vendeur"] },
+                { id: "credits", label: "💳 Crédits", roles: ["super_admin","store-manager","vendeur"] },
                 { id: "stores", label: "🏪 Magasins", roles: ["super_admin"] },
                 { id: "users", label: "👥 Utilisateurs", roles: ["super_admin"] },
-                { id: "logs", label: "📋 Journaux", roles: ["super_admin"] }
+                { id: "logs", label: "📋 Logs", roles: ["super_admin"] }
             ];
             const tabNav = document.getElementById('tabNav');
-            tabNav.innerHTML = tabs.filter(t => t.roles.includes(role)).map(t => `
-                <button data-tab="${t.id}" class="tab ${activeTab === t.id ? 'tab-active' : 'tab-inactive'}">${t.label}</button>
-            `).join('');
-            document.querySelectorAll('[data-tab]').forEach(btn => {
-                btn.onclick = () => { activeTab = btn.dataset.tab; renderCurrentTab(); };
-            });
+            tabNav.innerHTML = tabs.filter(t => t.roles.includes(role)).map(t => `<button data-tab="${t.id}" class="tab ${activeTab === t.id ? 'tab-active' : 'tab-inactive'}">${t.label}</button>`).join('');
+            document.querySelectorAll('[data-tab]').forEach(btn => btn.onclick = () => { activeTab = btn.dataset.tab; renderCurrentTab(); });
             updateStoreSelector();
             renderCurrentTab();
         }
@@ -252,57 +199,39 @@
             else if (activeTab === "withdraw") await renderWithdraw(container);
             else if (activeTab === "history") await renderHistory(container);
             else if (activeTab === "reorder") await renderReorder(container);
-            else if (activeTab === "transfers") await renderTransfers(container);
-            else if (activeTab === "expenses") await renderExpenses(container);
             else if (activeTab === "credits") await renderCredits(container);
             else if (activeTab === "stores") await renderStores(container);
             else if (activeTab === "users") await renderUsers(container);
             else if (activeTab === "logs") await renderLogs(container);
         }
 
-        // -------------------- ÉCRANS (UI claire) --------------------
+        // ========== DASHBOARD ==========
         async function renderDashboardHome(container) {
             const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
             const lowStock = products.filter(p => p.qty <= (p.min_threshold || 5));
             container.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="card p-5">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3"><i class="fas fa-exclamation-triangle text-amber-500 mr-2"></i>Alertes stock faible</h2>
-                        ${lowStock.length ? lowStock.map(p => `<div class="alert-low p-3 rounded-lg mb-2 flex justify-between"><span><strong>${p.ref}</strong> - ${p.designation}</span><span class="font-mono">${p.qty} / seuil ${p.min_threshold||5}</span></div>`).join('') : '<p class="text-green-600">✅ Aucune alerte</p>'}
+                    <div class="card p-5"><h2 class="text-lg font-semibold mb-3">⚠️ Alertes stock faible</h2>
+                        ${lowStock.length ? lowStock.map(p => `<div class="border-l-4 border-amber-400 bg-amber-50 p-3 rounded mb-2">${p.ref} - ${p.designation} : stock ${p.qty} / seuil ${p.min_threshold||5}</div>`).join('') : '<p class="text-green-600">✅ Aucune alerte</p>'}
                     </div>
-                    <div class="card p-5">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3">⚡ Actions rapides</h2>
+                    <div class="card p-5"><h2 class="text-lg font-semibold mb-3">⚡ Actions rapides</h2>
                         <button onclick="document.querySelector('[data-tab=\"pos\"]').click()" class="btn-primary w-full text-left text-white px-4 py-2 rounded-lg mb-2">🛒 Nouvelle vente</button>
                         <button onclick="document.querySelector('[data-tab=\"inventory\"]').click()" class="btn-primary w-full text-left text-white px-4 py-2 rounded-lg mb-2">📦 Mettre à jour le stock</button>
-                        <button onclick="document.querySelector('[data-tab=\"reorder\"]').click()" class="bg-amber-500 w-full text-left text-white px-4 py-2 rounded-lg mb-2">📋 Voir commandes fournisseur</button>
                     </div>
                 </div>
             `;
         }
 
-        // POS simplifié avec client et paiement
-        let cartItems = [];
-        let barcodeBuffer = "", barcodeTimeout = null;
-        function initBarcodeListener() {
-            document.removeEventListener('keydown', barcodeKeyHandler);
-            document.addEventListener('keydown', barcodeKeyHandler);
-        }
+        // ========== VENTE (POS) ==========
+        let cartItems = [], barcodeBuffer = "", barcodeTimeout = null;
+        function initBarcodeListener() { document.removeEventListener('keydown', barcodeKeyHandler); document.addEventListener('keydown', barcodeKeyHandler); }
         function barcodeKeyHandler(e) {
             if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
             if (e.key === 'Enter') {
-                if (barcodeBuffer.length > 3) {
-                    e.preventDefault();
-                    addProductByBarcode(barcodeBuffer);
-                    barcodeBuffer = "";
-                    if (barcodeTimeout) clearTimeout(barcodeTimeout);
-                }
+                if (barcodeBuffer.length > 3) { e.preventDefault(); addProductByBarcode(barcodeBuffer); barcodeBuffer = ""; if (barcodeTimeout) clearTimeout(barcodeTimeout); }
                 return;
             }
-            if (e.key.length === 1) {
-                barcodeBuffer += e.key;
-                if (barcodeTimeout) clearTimeout(barcodeTimeout);
-                barcodeTimeout = setTimeout(() => { barcodeBuffer = ""; }, 100);
-            }
+            if (e.key.length === 1) { barcodeBuffer += e.key; if (barcodeTimeout) clearTimeout(barcodeTimeout); barcodeTimeout = setTimeout(() => { barcodeBuffer = ""; }, 100); }
         }
         async function addProductByBarcode(barcode) {
             const product = productsCache.find(p => p.ref === barcode && (currentUserRole === 'super_admin' || p.storeId === currentStoreId));
@@ -319,26 +248,11 @@
             const cartDiv = document.getElementById('cartContainer');
             if (!cartDiv) return;
             const total = cartItems.reduce((s,i) => s + i.qty * i.price, 0);
-            cartDiv.innerHTML = `
-                <h3 class="font-bold text-gray-800 text-lg mb-3">🛒 Panier</h3>
-                ${cartItems.map((item, idx) => `
-                    <div class="flex justify-between items-center border-b py-2">
-                        <div><strong>${item.ref}</strong> - ${item.name}<br><span class="text-sm">${item.qty} x ${item.price} DH</span></div>
-                        <button data-cartidx="${idx}" class="removeCartItem text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                `).join('')}
+            cartDiv.innerHTML = `<h3 class="font-bold text-gray-800 text-lg mb-3">🛒 Panier</h3>
+                ${cartItems.map((item, idx) => `<div class="flex justify-between items-center border-b py-2"><div><strong>${item.ref}</strong> - ${item.name}<br><span class="text-sm">${item.qty} x ${item.price} DH</span></div><button data-cartidx="${idx}" class="removeCartItem text-red-500"><i class="fas fa-trash-alt"></i></button></div>`).join('')}
                 <div class="font-bold text-xl mt-3">Total : ${total} DH</div>
-                <div class="mt-4 space-y-2">
-                    <input id="customerName" placeholder="Nom du client" class="w-full">
-                    <div class="flex gap-2">
-                        <button id="sellCashBtn" class="btn-primary flex-1 text-white py-2 rounded-lg">💵 Paiement espèces</button>
-                        <button id="sellCreditBtn" class="bg-amber-500 flex-1 text-white py-2 rounded-lg">📝 Crédit client</button>
-                    </div>
-                </div>
-            `;
-            document.querySelectorAll('.removeCartItem').forEach(btn => {
-                btn.onclick = () => { cartItems.splice(parseInt(btn.dataset.cartidx),1); renderCartUI(); };
-            });
+                <div class="mt-4 space-y-2"><input id="customerName" placeholder="Nom du client" class="w-full"><div class="flex gap-2"><button id="sellCashBtn" class="btn-primary flex-1 text-white py-2 rounded-lg">💵 Espèces</button><button id="sellCreditBtn" class="bg-amber-500 flex-1 text-white py-2 rounded-lg">📝 Crédit</button></div></div>`;
+            document.querySelectorAll('.removeCartItem').forEach(btn => btn.onclick = () => { cartItems.splice(parseInt(btn.dataset.cartidx),1); renderCartUI(); });
             document.getElementById('sellCashBtn')?.addEventListener('click', () => finalizeSale(false));
             document.getElementById('sellCreditBtn')?.addEventListener('click', () => finalizeSale(true));
         }
@@ -349,19 +263,12 @@
                 const prod = productsCache.find(p => p.id === item.id);
                 if (!prod || prod.qty < item.qty) { alert(`Stock insuffisant pour ${item.ref}`); return; }
                 await db.ref('inventory/' + item.id).update({ qty: prod.qty - item.qty });
-                await db.ref('history').push().set({
-                    productId: item.id, productRef: item.ref, productName: item.name,
-                    quantity: item.qty, oldStock: prod.qty, newStock: prod.qty - item.qty,
-                    reason: "vente", userId: currentUser.uid, userEmail: currentUser.email,
-                    storeId: prod.storeId, date: new Date().toISOString()
-                });
+                await db.ref('history').push().set({ productId: item.id, productRef: item.ref, productName: item.name, quantity: item.qty, oldStock: prod.qty, newStock: prod.qty - item.qty, reason: "vente", userId: currentUser.uid, userEmail: currentUser.email, storeId: prod.storeId, date: new Date().toISOString() });
             }
             const total = cartItems.reduce((s,i)=>s+i.qty*i.price,0);
             const saleRef = db.ref('sales').push();
             await saleRef.set({ items: cartItems, total, customerName: customer, paid: !isCredit, date: new Date().toISOString(), storeId: currentStoreId, sellerId: currentUser.uid });
-            if (isCredit) {
-                await db.ref('debts').push().set({ customerName: customer, amount: total, paid: false, saleId: saleRef.key, date: new Date().toISOString() });
-            }
+            if (isCredit) await db.ref('debts').push().set({ customerName: customer, amount: total, paid: false, saleId: saleRef.key, date: new Date().toISOString() });
             logAction(`Vente ${isCredit ? 'crédit' : 'espèce'} de ${cartItems.length} articles`);
             cartItems = [];
             renderCartUI();
@@ -369,101 +276,37 @@
         }
 
         async function renderPOS(container) {
-            container.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="card p-5">
-                        <h2 class="text-lg font-semibold mb-3">🔍 Recherche / Scanner</h2>
-                        <input type="text" id="searchProduct" placeholder="Nom ou référence..." class="w-full mb-3">
-                        <div id="searchResults" class="max-h-96 overflow-y-auto"></div>
-                    </div>
-                    <div id="cartContainer" class="card p-5"></div>
-                </div>
-            `;
+            container.innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="card p-5"><h2 class="text-lg font-semibold mb-3">🔍 Recherche / Scanner</h2><input type="text" id="searchProduct" placeholder="Nom ou référence..." class="w-full mb-3"><div id="searchResults" class="max-h-96 overflow-y-auto"></div></div><div id="cartContainer" class="card p-5"></div></div>`;
             initBarcodeListener();
             renderCartUI();
-            const searchInput = document.getElementById('searchProduct');
-            searchInput.addEventListener('input', async (e) => {
+            document.getElementById('searchProduct').addEventListener('input', async (e) => {
                 const kw = e.target.value.toLowerCase();
                 if (kw.length < 2) return;
                 const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
                 const results = products.filter(p => p.designation.toLowerCase().includes(kw) || p.ref.toLowerCase().includes(kw));
-                document.getElementById('searchResults').innerHTML = results.slice(0,15).map(p => `
-                    <div class="border rounded-lg p-3 mb-2 flex justify-between items-center">
-                        <div><strong>${p.ref}</strong> - ${p.designation}<br><span class="text-sm text-gray-500">Stock: ${p.qty} - ${p.salePrice} DH</span></div>
-                        <button data-id="${p.id}" data-ref="${p.ref}" data-name="${p.designation}" data-price="${p.salePrice}" class="addToCartBtn btn-primary text-white px-3 py-1 rounded">Ajouter</button>
-                    </div>
-                `).join('');
-                document.querySelectorAll('.addToCartBtn').forEach(btn => {
-                    btn.onclick = () => {
-                        const product = { id: btn.dataset.id, ref: btn.dataset.ref, designation: btn.dataset.name, salePrice: parseFloat(btn.dataset.price) };
-                        addToCart(product);
-                    };
-                });
+                document.getElementById('searchResults').innerHTML = results.slice(0,15).map(p => `<div class="border rounded-lg p-3 mb-2 flex justify-between"><div><strong>${p.ref}</strong> - ${p.designation}<br><span class="text-sm">Stock: ${p.qty} - ${p.salePrice} DH</span></div><button data-id="${p.id}" data-ref="${p.ref}" data-name="${p.designation}" data-price="${p.salePrice}" class="addToCartBtn btn-primary text-white px-3 py-1 rounded">Ajouter</button></div>`).join('');
+                document.querySelectorAll('.addToCartBtn').forEach(btn => btn.onclick = () => addToCart({ id: btn.dataset.id, ref: btn.dataset.ref, designation: btn.dataset.name, salePrice: parseFloat(btn.dataset.price) }));
             });
         }
 
-        // Inventory (avec mise à jour en temps réel)
+        // ========== GESTION STOCK ==========
         async function renderInventory(container) {
             const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
-            container.innerHTML = `
-                <div class="card p-5">
-                    <div class="flex justify-between items-center flex-wrap gap-2 mb-4">
-                        <h2 class="text-xl font-bold text-gray-800">📦 Stock</h2>
-                        <button id="addProductBtn" class="btn-primary text-white px-4 py-2 rounded-lg">+ Nouveau produit</button>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>Référence</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>Prix achat</th><th>Prix vente</th><th>Actions</th></tr></thead>
-                            <tbody id="invBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
+            container.innerHTML = `<div class="card p-5"><div class="flex justify-between items-center flex-wrap gap-2 mb-4"><h2 class="text-xl font-bold">📦 Stock</h2><button id="addProductBtn" class="btn-primary text-white px-4 py-2 rounded-lg">+ Nouveau produit</button></div><div class="table-container"><table><thead><tr><th>Réf</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>Prix achat</th><th>Prix vente</th><th>Actions</th></tr></thead><tbody id="invBody"></tbody></table></div></div>`;
             const tbody = document.getElementById('invBody');
-            tbody.innerHTML = products.map(p => `
-                <tr>
-                    <td>${p.ref}</td><td>${p.designation}</td>
-                    <td><input type="number" data-id="${p.id}" class="stockInput w-20 border rounded p-1" value="${p.qty}"></td>
-                    <td><input type="number" data-id="${p.id}" class="threshInput w-20 border rounded p-1" value="${p.min_threshold || 5}"></td>
-                    <td>${p.purchasePrice} DH</td><td>${p.salePrice} DH</td>
-                    <td><button data-id="${p.id}" class="updateStockBtn text-blue-600 mr-2"><i class="fas fa-save"></i></button><button data-id="${p.id}" class="deleteProductBtn text-red-600"><i class="fas fa-trash"></i></button></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = products.map(p => `<tr><td>${p.ref}</td><td>${p.designation}</td><td><input type="number" data-id="${p.id}" class="stockInput w-20 border rounded p-1" value="${p.qty}"></td><td><input type="number" data-id="${p.id}" class="threshInput w-20 border rounded p-1" value="${p.min_threshold || 5}"></td><td>${p.purchasePrice} DH</td><td>${p.salePrice} DH</td><td><button data-id="${p.id}" class="updateStockBtn text-blue-600 mr-2"><i class="fas fa-save"></i></button><button data-id="${p.id}" class="deleteProductBtn text-red-600"><i class="fas fa-trash"></i></button></td></tr>`).join('');
             document.getElementById('addProductBtn').onclick = async () => {
                 const ref = prompt("Référence"); const des = prompt("Désignation"); const qty = parseInt(prompt("Qté initiale"))||0; const price = parseFloat(prompt("Prix achat"));
-                if(ref && des && price) {
-                    await db.ref('inventory').push().set({ ref, designation: des, qty, purchasePrice: price, salePrice: price*1.2, min_threshold: 5, storeId: currentStoreId || (storesList[0]?.id), createdAt: new Date().toISOString() });
-                    logAction(`Ajout produit ${ref}`);
-                }
+                if(ref && des && price) await db.ref('inventory').push().set({ ref, designation: des, qty, purchasePrice: price, salePrice: price*1.2, min_threshold: 5, storeId: currentStoreId || (storesList[0]?.id), createdAt: new Date().toISOString() });
             };
-            document.querySelectorAll('.updateStockBtn').forEach(btn => {
-                btn.onclick = async () => {
-                    const id = btn.dataset.id;
-                    const newQty = parseInt(document.querySelector(`.stockInput[data-id="${id}"]`).value);
-                    const newThresh = parseInt(document.querySelector(`.threshInput[data-id="${id}"]`).value);
-                    await db.ref('inventory/'+id).update({ qty: newQty, min_threshold: newThresh });
-                    logAction(`Mise à jour stock ${id}`);
-                };
-            });
-            document.querySelectorAll('.deleteProductBtn').forEach(btn => {
-                btn.onclick = async () => { if(confirm("Supprimer ?")) await db.ref('inventory/'+btn.dataset.id).remove(); logAction(`Produit supprimé ${btn.dataset.id}`); };
-            });
+            document.querySelectorAll('.updateStockBtn').forEach(btn => btn.onclick = async () => { const id = btn.dataset.id; await db.ref('inventory/'+id).update({ qty: parseInt(document.querySelector(`.stockInput[data-id="${id}"]`).value), min_threshold: parseInt(document.querySelector(`.threshInput[data-id="${id}"]`).value) }); });
+            document.querySelectorAll('.deleteProductBtn').forEach(btn => btn.onclick = async () => { if(confirm("Supprimer ?")) await db.ref('inventory/'+btn.dataset.id).remove(); });
         }
 
+        // ========== SORTIE STOCK UI ==========
         async function renderWithdraw(container) {
             const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
-            container.innerHTML = `
-                <div class="card p-5">
-                    <h2 class="text-xl font-bold mb-4">📤 Sortie de stock (retrait intelligent)</h2>
-                    <div class="space-y-3">
-                        <select id="withdrawProduct" class="w-full">${products.map(p => `<option value="${p.id}" data-stock="${p.qty}" data-name="${p.designation}">${p.ref} - ${p.designation} (stock: ${p.qty})</option>`).join('')}</select>
-                        <input type="number" id="withdrawQty" placeholder="Quantité à retirer" class="w-full">
-                        <select id="withdrawReason" class="w-full"><option>vente</option><option>casse</option><option>transfert</option></select>
-                        <button id="doWithdrawBtn" class="btn-primary text-white px-4 py-2 rounded-lg">Effectuer le retrait</button>
-                        <div id="withdrawMsg" class="text-sm"></div>
-                    </div>
-                </div>
-            `;
+            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">📤 Sortie de stock</h2><select id="withdrawProduct" class="w-full mb-3">${products.map(p => `<option value="${p.id}" data-stock="${p.qty}" data-name="${p.designation}">${p.ref} - ${p.designation} (stock: ${p.qty})</option>`).join('')}</select><input type="number" id="withdrawQty" placeholder="Quantité à retirer" class="w-full mb-3"><select id="withdrawReason" class="w-full mb-3"><option>vente</option><option>casse</option><option>transfert</option></select><button id="doWithdrawBtn" class="btn-primary text-white px-4 py-2 rounded-lg">Effectuer le retrait</button><div id="withdrawMsg" class="mt-3 text-sm"></div></div>`;
             document.getElementById('doWithdrawBtn').onclick = async () => {
                 const productId = document.getElementById('withdrawProduct').value;
                 const qty = parseInt(document.getElementById('withdrawQty').value);
@@ -482,96 +325,77 @@
             const snapshot = await db.ref('history').orderByChild('date').limitToLast(100).once('value');
             const list = []; snapshot.forEach(c => list.push(c.val()));
             list.reverse();
-            container.innerHTML = `
-                <div class="card p-5">
-                    <h2 class="text-xl font-bold mb-4">📜 Historique des mouvements</h2>
-                    <div class="table-container">
-                        <table><thead><tr><th>Date</th><th>Produit</th><th>Qté retirée</th><th>Ancien stock</th><th>Nouveau</th><th>Motif</th><th>Utilisateur</th></tr></thead>
-                        <tbody>${list.map(h => `<tr><td>${new Date(h.date).toLocaleString()}</td><td>${h.productRef}</td><td>${h.quantity}</td><td>${h.oldStock}</td><td>${h.newStock}</td><td>${h.reason}</td><td>${h.userEmail || ''}</td></tr>`).join('')}</tbody></table>
-                    </div>
-                </div>
-            `;
+            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">📜 Historique</h2><div class="table-container"><table><thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Ancien</th><th>Nouveau</th><th>Motif</th><th>Utilisateur</th></tr></thead><tbody>${list.map(h => `<tr><td>${new Date(h.date).toLocaleString()}</td><td>${h.productRef}</td><td>${h.quantity}</td><td>${h.oldStock}</td><td>${h.newStock}</td><td>${h.reason}</td><td>${h.userEmail || ''}</td></tr>`).join('')}</tbody></table></div></div>`;
         }
 
         async function renderReorder(container) {
             const products = await getProducts(null);
             const low = products.filter(p => p.qty <= (p.min_threshold||5));
-            container.innerHTML = `
-                <div class="card p-5">
-                    <h2 class="text-xl font-bold mb-4">🔄 Réassort automatique</h2>
-                    <div class="table-container">
-                        <table><thead><tr><th>Magasin</th><th>Référence</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>Quantité recommandée</th></tr></thead>
-                        <tbody>${low.map(p => `<tr><td>${storesList.find(s=>s.id===p.storeId)?.name||p.storeId}</td><td>${p.ref}</td><td>${p.designation}</td><td class="text-red-600">${p.qty}</td><td>${p.min_threshold||5}</td><td>${Math.max((p.min_threshold||5)-p.qty+5,5)}</td></tr>`).join('')}</tbody></table>
-                    </div>
-                    <button id="exportCsvBtn" class="btn-primary mt-4 text-white px-4 py-2 rounded-lg">📎 Exporter commandes (CSV)</button>
-                </div>
-            `;
-            document.getElementById('exportCsvBtn')?.addEventListener('click', () => {
-                let csv = "Référence,Désignation,Quantité recommandée\n"+low.map(p=>`${p.ref},${p.designation},${Math.max((p.min_threshold||5)-p.qty+5,5)}`).join("\n");
-                const blob = new Blob([csv], {type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="commandes.csv"; a.click();
+            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">🔄 Réassort</h2><div class="table-container"><table><thead><tr><th>Magasin</th><th>Réf</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>Recommandé</th></tr></thead><tbody>${low.map(p => `<tr><td>${storesList.find(s=>s.id===p.storeId)?.name||p.storeId}</td><td>${p.ref}</td><td>${p.designation}</td><td class="text-red-600">${p.qty}</td><td>${p.min_threshold||5}</td><td>${Math.max((p.min_threshold||5)-p.qty+5,5)}</td></tr>`).join('')}</tbody></table></div><button id="exportCsvBtn" class="btn-primary mt-4 text-white px-4 py-2 rounded-lg">📎 Exporter CSV</button></div>`;
+            document.getElementById('exportCsvBtn')?.addEventListener('click', () => { let csv = "Réf,Designation,Qté recommandée\n"+low.map(p=>`${p.ref},${p.designation},${Math.max((p.min_threshold||5)-p.qty+5,5)}`).join("\n"); const blob = new Blob([csv], {type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="commandes.csv"; a.click(); });
+        }
+
+        // ========== CRÉDITS CLIENTS (CORRIGÉ) ==========
+        async function renderCredits(container) {
+            const snapshot = await db.ref('debts').orderByChild('paid').equalTo(false).once('value');
+            const debts = [];
+            snapshot.forEach(child => debts.push({ id: child.key, ...child.val() }));
+            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">💳 Crédits clients</h2><div class="table-container"><table><thead><tr><th>Client</th><th>Montant</th><th>Date</th><th>Action</th></tr></thead><tbody id="creditsBody">${debts.map(d => `<tr><td>${d.customerName}</td><td>${d.amount} DH</td><td>${new Date(d.date).toLocaleDateString()}</td><td><button data-id="${d.id}" class="payDebtBtn bg-green-600 text-white px-3 py-1 rounded">Marquer payé</button></td></tr>`).join('')}</tbody></table></div></div>`;
+            document.querySelectorAll('.payDebtBtn').forEach(btn => {
+                btn.onclick = async () => {
+                    const debtId = btn.dataset.id;
+                    await db.ref('debts/' + debtId).update({ paid: true });
+                    await logAction(`Crédit payé pour client ${debts.find(d=>d.id===debtId)?.customerName}`);
+                    renderCurrentTab(); // rafraîchir la liste
+                };
             });
         }
 
-        async function renderTransfers(container) { /* version simplifiée */ container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold">🚚 Transferts inter-magasins</h2><p>Fonctionnalité en développement</p></div>`; }
-        async function renderExpenses(container) { container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold">💰 Dépenses</h2><p>Module à venir</p></div>`; }
-        async function renderCredits(container) { 
-            const debts = []; (await db.ref('debts').orderByChild('paid').equalTo(false).once('value')).forEach(c=>debts.push(c.val()));
-            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">💳 Crédits clients</h2><table class="w-full"><thead><tr><th>Client</th><th>Montant</th><th>Date</th><th>Action</th></tr></thead><tbody>${debts.map(d=>`<tr><td>${d.customerName}</td><td>${d.amount} DH</td><td>${new Date(d.date).toLocaleDateString()}</td><td><button data-id="${d.id}" class="payDebtBtn bg-green-600 text-white px-3 py-1 rounded">Marquer payé</button></td></tr>`).join('')}</tbody></table></div>`;
-            document.querySelectorAll('.payDebtBtn').forEach(btn => btn.onclick = async () => { await db.ref('debts/'+btn.dataset.id).update({paid:true}); renderCurrentTab(); });
-        }
-
-        // ========== GESTION MAGASINS (temps réel avec écouteur) ==========
+        // ========== GESTION MAGASINS (AJOUT FONCTIONNEL) ==========
         async function renderStores(container) {
             container.innerHTML = `
                 <div class="card p-5">
-                    <h2 class="text-xl font-bold mb-4">🏪 Liste des magasins</h2>
+                    <h2 class="text-xl font-bold mb-4">🏪 Gestion des magasins</h2>
                     <div class="flex gap-2 mb-6">
                         <input id="newStoreName" placeholder="Nom du magasin" class="flex-1">
                         <input id="newStoreLoc" placeholder="Adresse" class="flex-1">
                         <button id="addStoreBtn" class="btn-primary text-white px-4 py-2 rounded-lg">➕ Ajouter</button>
                     </div>
                     <div class="table-container">
-                        <table id="storesTable">
+                        <table>
                             <thead><tr><th>Nom</th><th>Adresse</th><th>Actions</th></tr></thead>
                             <tbody id="storesListBody"></tbody>
                         </table>
                     </div>
                 </div>
             `;
-            // Remplissage via l'écouteur temps réel (déjà actif)
-            function updateStoresTable() {
+            const updateTable = () => {
                 const tbody = document.getElementById('storesListBody');
                 if (tbody) {
-                    tbody.innerHTML = storesList.map(s => `
-                        <tr><td>${s.name}</td><td>${s.location || ''}</td><td><button data-id="${s.id}" class="deleteStoreBtn bg-red-500 text-white px-3 py-1 rounded text-sm">Supprimer</button></td></tr>
-                    `).join('');
-                    document.querySelectorAll('.deleteStoreBtn').forEach(btn => {
-                        btn.onclick = async () => { if(confirm("Supprimer ce magasin ?")) { await db.ref('stores/'+btn.dataset.id).remove(); logAction(`Magasin supprimé`); } };
-                    });
+                    tbody.innerHTML = storesList.map(s => `<tr><td>${s.name}</td><td>${s.location || ''}</td><td><button data-id="${s.id}" class="deleteStoreBtn bg-red-500 text-white px-3 py-1 rounded text-sm">Supprimer</button></td></tr>`).join('');
+                    document.querySelectorAll('.deleteStoreBtn').forEach(btn => btn.onclick = async () => { if(confirm("Supprimer ce magasin ?")) await db.ref('stores/'+btn.dataset.id).remove(); });
                 }
-            }
-            updateStoresTable();
-            // Réattacher l'événement d'ajout
+            };
+            updateTable();
             document.getElementById('addStoreBtn').onclick = async () => {
                 const name = document.getElementById('newStoreName').value.trim();
                 if (!name) return alert("Nom requis");
                 await db.ref('stores').push().set({ name, location: document.getElementById('newStoreLoc').value, createdAt: new Date().toISOString() });
                 document.getElementById('newStoreName').value = '';
                 document.getElementById('newStoreLoc').value = '';
-                logAction(`Ajout magasin ${name}`);
+                await logAction(`Ajout magasin ${name}`);
             };
-            // Surveillance supplémentaire pour mise à jour dynamique (déjà via storesListener)
-            const observer = () => updateStoresTable();
+            // Réécouteur pour mise à jour temps réel
             if (storesListener) storesListener.off();
             storesListener = db.ref('stores').on('value', (snapshot) => {
-                const stores = []; snapshot.forEach(child => stores.push({ id: child.key, ...child.val() }));
-                storesList = stores;
-                updateStoresTable();
+                storesList = [];
+                snapshot.forEach(child => storesList.push({ id: child.key, ...child.val() }));
+                updateTable();
                 updateStoreSelector();
             });
         }
 
-        // ========== GESTION UTILISATEURS (temps réel) ==========
+        // ========== GESTION UTILISATEURS (AVEC RÔLE ET MAGASIN) ==========
         async function renderUsers(container) {
             container.innerHTML = `
                 <div class="card p-5">
@@ -579,52 +403,55 @@
                     <div class="flex flex-wrap gap-2 mb-6">
                         <input id="newUserEmail" placeholder="Email" class="flex-1">
                         <select id="newUserRole" class="border rounded-lg p-2"><option value="manager">Manager</option><option value="vendeur">Vendeur</option><option value="super_admin">Super Admin</option></select>
-                        <select id="newUserStore" class="border rounded-lg p-2">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select>
+                        <select id="newUserStore" class="border rounded-lg p-2"><option value="">Aucun</option>${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select>
                         <button id="createUserBtn" class="btn-primary text-white px-4 py-2 rounded-lg">Créer</button>
                     </div>
                     <div class="table-container">
-                        <table id="usersTable">
+                        <table>
                             <thead><tr><th>Email</th><th>Rôle</th><th>Magasin</th><th>Actions</th></tr></thead>
                             <tbody id="usersListBody"></tbody>
                         </table>
                     </div>
                 </div>
             `;
-            const updateUsersTable = () => {
-                db.ref('users').once('value', (snapshot) => {
-                    const users = []; snapshot.forEach(c => users.push({ id: c.key, ...c.val() }));
-                    const tbody = document.getElementById('usersListBody');
-                    if (tbody) {
-                        tbody.innerHTML = users.map(u => `
-                            <tr><td>${u.email}</td><td><span class="badge ${u.role === 'super_admin' ? 'badge-admin' : (u.role === 'manager' ? 'badge-manager' : 'badge-vendeur')}">${u.role}</span></td><td>${storesList.find(s=>s.id===u.storeId)?.name || '-'}</td><td>${u.email !== currentUser?.email ? `<button data-id="${u.id}" class="deleteUserBtn bg-red-500 text-white px-3 py-1 rounded text-sm">Supprimer</button>` : '—'}</td></tr>
-                        `).join('');
-                        document.querySelectorAll('.deleteUserBtn').forEach(btn => {
-                            btn.onclick = async () => { if(confirm("Supprimer cet utilisateur ?")) await db.ref('users/'+btn.dataset.id).remove(); logAction(`Utilisateur supprimé`); };
-                        });
-                    }
-                });
+            const loadUsers = async () => {
+                const snapshot = await db.ref('users').once('value');
+                const users = []; snapshot.forEach(c => users.push({ id: c.key, ...c.val() }));
+                const tbody = document.getElementById('usersListBody');
+                if (tbody) {
+                    tbody.innerHTML = users.map(u => `
+                        <tr>
+                            <td>${u.email}</td>
+                            <td><span class="badge ${u.role === 'super_admin' ? 'badge-admin' : (u.role === 'manager' ? 'badge-manager' : 'badge-vendeur')}">${u.role}</span></td>
+                            <td>${storesList.find(s=>s.id===u.storeId)?.name || '-'}</td>
+                            <td>${u.email !== currentUser?.email ? `<button data-id="${u.id}" class="deleteUserBtn bg-red-500 text-white px-3 py-1 rounded text-sm">Supprimer</button>` : '—'}</td>
+                        </tr>
+                    `).join('');
+                    document.querySelectorAll('.deleteUserBtn').forEach(btn => btn.onclick = async () => { if(confirm("Supprimer cet utilisateur ?")) await db.ref('users/'+btn.dataset.id).remove(); });
+                }
             };
-            updateUsersTable();
+            loadUsers();
             document.getElementById('createUserBtn').onclick = async () => {
                 const email = document.getElementById('newUserEmail').value.trim();
                 const role = document.getElementById('newUserRole').value;
-                const storeId = document.getElementById('newUserStore').value;
+                const storeId = document.getElementById('newUserStore').value || null;
                 const pwd = "password123";
+                if (!email) return alert("Email requis");
                 try {
                     const cred = await auth.createUserWithEmailAndPassword(email, pwd);
                     await db.ref('users/'+cred.user.uid).set({ name: email.split('@')[0], email, role, storeId, createdAt: new Date().toISOString() });
                     alert(`Utilisateur créé. Mot de passe: ${pwd}`);
-                    updateUsersTable();
+                    loadUsers();
                 } catch(e) { alert("Erreur: "+e.message); }
             };
-            // Écouteur temps réel pour les utilisateurs
-            db.ref('users').on('value', () => updateUsersTable());
+            // Écouteur temps réel pour mise à jour automatique
+            db.ref('users').on('value', () => loadUsers());
         }
 
         async function renderLogs(container) {
             const snapshot = await db.ref('actionLogs').orderByChild('timestamp').limitToLast(50).once('value');
             const logs = []; snapshot.forEach(c => logs.push(c.val()));
-            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">📋 Journal des actions</h2><ul class="list-disc pl-5 space-y-1">${logs.reverse().map(l=>`<li>${l.action} - ${l.user} - ${new Date(l.timestamp).toLocaleString()}</li>`).join('')}</ul></div>`;
+            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">📋 Journaux</h2><ul class="list-disc pl-5 space-y-1">${logs.reverse().map(l=>`<li>${l.action} - ${l.user} - ${new Date(l.timestamp).toLocaleString()}</li>`).join('')}</ul></div>`;
         }
 
         // ========== AUTHENTIFICATION ==========
@@ -641,7 +468,7 @@
                 currentStoreId = userData.storeId;
                 document.getElementById('roleBadge').innerText = currentUserRole;
                 document.getElementById('roleBadge').className = `badge ${currentUserRole === 'super_admin' ? 'badge-admin' : 'badge-manager'}`;
-                await startStoresRealtime();
+                startStoresRealtime();
                 startInventoryRealtime();
                 authSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
@@ -654,11 +481,7 @@
             if (user) {
                 const ud = await getOrCreateUserInRTDB(user);
                 if (!ud || ud.role !== 'super_admin') { await auth.signOut(); authSection.classList.remove('hidden'); dashboardSection.classList.add('hidden'); }
-                else { /* déjà géré par le login, mais on évite la double exécution */ }
-            } else {
-                authSection.classList.remove('hidden');
-                dashboardSection.classList.add('hidden');
-            }
+            } else { authSection.classList.remove('hidden'); dashboardSection.classList.add('hidden'); }
         });
     </script>
 </body>
