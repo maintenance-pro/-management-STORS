@@ -3,128 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Management-Stors | ERP Moderne</title>
+    <title>Stor-Management | ERP Temps Réel</title>
+    <!-- Google Fonts + Tailwind + Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDK (Realtime Database) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* Design Moderne Industriel */
-        body {
-            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-        .glass-card {
-            background: rgba(45, 45, 45, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .glass-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #0056b3, #003d82);
-            transition: all 0.2s;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #0066cc, #004099);
-            transform: scale(1.02);
-        }
-        .btn-warning {
-            background: linear-gradient(135deg, #ffcc00, #e6b800);
-            color: #1a1a1a;
-        }
-        .btn-success {
-            background: linear-gradient(135deg, #2e7d32, #1b5e20);
-        }
-        input, select, textarea {
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 0.75rem;
-            padding: 0.6rem 1rem;
-            color: #f0f0f0;
-            transition: all 0.2s;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #0056b3;
-            box-shadow: 0 0 0 2px rgba(0,86,179,0.3);
-        }
-        .tab-active {
-            background: rgba(0,86,179,0.2);
-            color: #0056b3;
-            border-bottom: 2px solid #0056b3;
-        }
-        .tab-inactive {
-            color: #aaa;
-        }
-        .tab-inactive:hover {
-            background: rgba(255,255,255,0.05);
-        }
-        .badge {
-            background: #0056b3;
-            padding: 0.2rem 0.6rem;
-            border-radius: 2rem;
-            font-size: 0.7rem;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        .low-stock {
-            border-left: 4px solid #ffcc00;
-            animation: pulse 1.5s infinite;
-        }
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: #f0f2f5; }
+        .card { background-color: #ffffff; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eaeef2; transition: all 0.2s; }
+        .btn-primary { background-color: #0056b3; transition: all 0.2s; }
+        .btn-primary:hover { background-color: #004099; transform: translateY(-1px); }
+        .btn-outline { border: 1px solid #d0d5dd; background: white; color: #1f2937; }
+        .btn-outline:hover { background-color: #f9fafb; }
+        .table-container { overflow-x: auto; border-radius: 0.75rem; border: 1px solid #eef2f6; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 0.9rem 1rem; background-color: #f9fafb; font-weight: 600; color: #1e293b; border-bottom: 1px solid #e2e8f0; }
+        td { padding: 0.8rem 1rem; border-bottom: 1px solid #edf2f7; color: #1f2937; }
+        .badge { padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 600; }
+        .badge-admin { background-color: #e0f2fe; color: #0369a1; }
+        .badge-manager { background-color: #dcfce7; color: #15803d; }
+        .badge-vendeur { background-color: #fef3c7; color: #b45309; }
+        input, select, textarea { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; background: white; transition: 0.2s; }
+        input:focus, select:focus { outline: none; border-color: #0056b3; ring: 2px solid #0056b3; }
+        .tab { padding: 0.5rem 1rem; border-radius: 2rem; font-weight: 500; transition: 0.2s; cursor: pointer; }
+        .tab-active { background-color: #0056b3; color: white; }
+        .tab-inactive { background-color: #f1f5f9; color: #1e293b; }
+        .tab-inactive:hover { background-color: #e2e8f0; }
+        .alert-low { border-left: 4px solid #eab308; background-color: #fefce8; }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
-    <!-- Login -->
-    <div id="authSection" class="flex items-center justify-center min-h-screen">
-        <div class="glass-card p-8 w-96">
+    <!-- Login Section -->
+    <div id="authSection" class="flex items-center justify-center min-h-screen p-4">
+        <div class="card w-full max-w-md p-8">
             <div class="text-center mb-6">
-                <i class="fas fa-industry text-5xl text-[#0056b3]"></i>
-                <h1 class="text-2xl font-bold mt-2 text-white">Management-Stors</h1>
-                <p class="text-gray-400">ERP Moderne Multi‑Magasin</p>
+                <i class="fas fa-cubes text-4xl text-[#0056b3]"></i>
+                <h1 class="text-2xl font-bold text-gray-800 mt-2">Stor‑Management</h1>
+                <p class="text-gray-500 text-sm">ERP Multi‑Magasin • Temps réel</p>
             </div>
-            <input type="email" id="loginEmail" placeholder="Email" class="w-full mb-3" value="lihanbello05@gmail.com">
+            <input type="email" id="loginEmail" placeholder="Email professionnel" class="w-full mb-3" value="lihanbello05@gmail.com">
             <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full mb-4">
-            <button id="loginBtn" class="btn-primary w-full text-white font-bold py-2 rounded-xl">Connexion</button>
-            <div id="infoMessage" class="text-center text-sm mt-3 text-gray-400"></div>
+            <button id="loginBtn" class="btn-primary w-full text-white font-semibold py-2.5 rounded-lg">Se connecter</button>
+            <div id="infoMessage" class="text-center text-sm mt-3 text-gray-500"></div>
         </div>
     </div>
 
-    <!-- Dashboard -->
+    <!-- Dashboard Principal (caché après login) -->
     <div id="dashboardSection" class="hidden">
         <!-- Header -->
-        <div class="sticky top-0 z-30 bg-black/80 backdrop-blur-lg border-b border-gray-800 px-6 py-3 flex justify-between items-center flex-wrap gap-2">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-charging-station text-2xl text-[#0056b3]"></i>
-                <h1 class="text-xl font-bold text-white">Management-Stors</h1>
-                <span id="roleBadge" class="badge text-white"></span>
+        <div class="bg-white border-b border-gray-200 sticky top-0 z-20 px-6 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-cubes text-2xl text-[#0056b3]"></i>
+                <h1 class="text-xl font-bold text-gray-800">Stor‑Management</h1>
+                <span id="roleBadge" class="badge badge-admin hidden"></span>
             </div>
             <div class="flex items-center gap-4">
                 <span id="storeSelectorContainer"></span>
-                <button id="logoutBtn" class="bg-red-700 hover:bg-red-800 text-white px-4 py-1 rounded-full text-sm transition">Déconnexion</button>
+                <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-sm transition">Déconnexion</button>
             </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex flex-wrap gap-1 px-4 pt-2" id="tabNav"></div>
+        <!-- Tabs navigation -->
+        <div class="px-6 pt-4 flex flex-wrap gap-2" id="tabNav"></div>
 
         <!-- Contenu principal -->
         <div id="mainContent" class="p-6"></div>
     </div>
 
     <script>
-        // Firebase Config
+        // -------------------- CONFIGURATION FIREBASE --------------------
         const firebaseConfig = {
             apiKey: "AIzaSyC6ra1yBkIcICHN5gOLGcc9128g0sTdA6g",
             authDomain: "stor-management.firebaseapp.com",
@@ -138,215 +91,156 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // Global state
-        let currentUser = null, currentUserRole = null, currentStoreId = null, storesList = [], activeTab = "dashboard";
-        let cartItems = [];
-        let barcodeBuffer = "", barcodeTimeout = null;
+        // État global
+        let currentUser = null;
+        let currentUserRole = null;
+        let currentStoreId = null;
+        let storesList = [];
+        let activeTab = "dashboard";
 
+        // Listeners temps réel (on stocke les off pour les nettoyer si besoin)
+        let storesListener = null;
+        let usersListener = null;
+        let inventoryListener = null;
+
+        // Éléments DOM
         const authSection = document.getElementById('authSection');
         const dashboardSection = document.getElementById('dashboardSection');
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const infoMessage = document.getElementById('infoMessage');
 
+        // Liste des admins autorisés à la création auto
         const AUTHORIZED_ADMINS = ['admin@store.com', 'lihanbello05@gmail.com'];
 
         function setMessage(msg, isError = false) {
-            if (infoMessage) infoMessage.innerText = msg;
+            if (infoMessage) {
+                infoMessage.innerText = msg;
+                infoMessage.className = `text-center text-sm mt-3 ${isError ? 'text-red-600' : 'text-gray-500'}`;
+            }
             console.log(msg);
         }
 
-        // ========== USER & ROLES ==========
+        // ========== GESTION UTILISATEUR (création auto) ==========
         async function getOrCreateUserInRTDB(user) {
             const uid = user.uid;
             const email = user.email;
             const snapshot = await db.ref('users/' + uid).once('value');
             if (snapshot.exists()) return snapshot.val();
             if (AUTHORIZED_ADMINS.includes(email)) {
-                const userData = { name: email.split('@')[0], email, role: 'super_admin', storeId: null, createdAt: new Date().toISOString() };
+                const userData = {
+                    name: email.split('@')[0],
+                    email: email,
+                    role: 'super_admin',
+                    storeId: null,
+                    createdAt: new Date().toISOString()
+                };
                 await db.ref('users/' + uid).set(userData);
                 return userData;
             }
             return null;
         }
 
-        async function loadStores() {
-            const snapshot = await db.ref('stores').once('value');
-            const stores = [];
-            snapshot.forEach(child => stores.push({ id: child.key, ...child.val() }));
-            if (stores.length === 0 && currentUserRole === 'super_admin') {
-                await db.ref('stores').push().set({ name: "Magasin Central", location: "Casablanca", createdAt: new Date().toISOString() });
-                await db.ref('stores').push().set({ name: "Magasin Sud", location: "Marrakech", createdAt: new Date().toISOString() });
-                return loadStores();
-            }
-            storesList = stores;
-            return storesList;
+        // ========== CHARGEMENT INITIAL DES MAGASINS (sync + temps réel) ==========
+        function startStoresRealtime() {
+            if (storesListener) storesListener.off();
+            storesListener = db.ref('stores').on('value', (snapshot) => {
+                const stores = [];
+                snapshot.forEach(child => stores.push({ id: child.key, ...child.val() }));
+                storesList = stores;
+                // Si on est sur un onglet qui affiche les magasins, on rafraîchit
+                if (activeTab === 'stores') renderCurrentTab();
+                // Mise à jour du sélecteur de magasin dans le header
+                updateStoreSelector();
+            });
         }
 
+        function updateStoreSelector() {
+            const container = document.getElementById('storeSelectorContainer');
+            if (!container) return;
+            if (currentUserRole === 'super_admin' || currentUserRole === 'store-manager') {
+                const options = storesList.map(s => `<option value="${s.id}" ${currentStoreId === s.id ? 'selected' : ''}>${s.name}</option>`);
+                container.innerHTML = `<select id="storeSelect" class="border border-gray-300 rounded-lg p-1 text-sm bg-white"><option value="">Tous les magasins</option>${options}</select>`;
+                const select = document.getElementById('storeSelect');
+                if (select) select.onchange = (e) => { currentStoreId = e.target.value || null; renderCurrentTab(); };
+            } else {
+                const store = storesList.find(s => s.id === currentStoreId);
+                container.innerHTML = `<span class="text-gray-600 text-sm">${store ? store.name : 'Magasin'}</span>`;
+            }
+        }
+
+        // ========== CHARGEMENT DES PRODUITS (temps réel) ==========
+        let productsCache = [];
+        function startInventoryRealtime() {
+            if (inventoryListener) inventoryListener.off();
+            inventoryListener = db.ref('inventory').on('value', (snapshot) => {
+                const prods = [];
+                snapshot.forEach(child => prods.push({ id: child.key, ...child.val() }));
+                productsCache = prods;
+                // Si l'onglet actuel a besoin des produits, on rafraîchit
+                if (['inventory', 'pos', 'withdraw', 'reorder', 'history'].includes(activeTab)) {
+                    renderCurrentTab();
+                }
+            });
+        }
+
+        // Fonction utilitaire pour récupérer les produits (depuis cache temps réel)
+        async function getProducts(storeId = null) {
+            let filtered = productsCache;
+            if (storeId) filtered = filtered.filter(p => p.storeId === storeId);
+            return filtered;
+        }
+
+        // ========== HISTORIQUE / LOGS ==========
         async function logAction(action, details = {}) {
             if (!currentUser) return;
-            await db.ref('actionLogs').push().set({ action, user: currentUser.email, details, timestamp: new Date().toISOString() });
-        }
-
-        async function getProducts(storeId = null) {
-            const snapshot = await db.ref('inventory').once('value');
-            const products = [];
-            snapshot.forEach(child => {
-                const prod = { id: child.key, ...child.val() };
-                if (storeId && prod.storeId !== storeId) return;
-                products.push(prod);
+            await db.ref('actionLogs').push().set({
+                action, user: currentUser.email, details, timestamp: new Date().toISOString()
             });
-            return products;
         }
 
-        // ========== VENTES ==========
-        async function addToCart(productId, productRef, productName, price, qty = 1) {
-            const existing = cartItems.find(i => i.id === productId);
-            if (existing) existing.qty += qty;
-            else cartItems.push({ id: productId, ref: productRef, name: productName, price, qty });
-            renderCartUI();
-        }
-
-        function renderCartUI() {
-            const cartDiv = document.getElementById('cartContainer');
-            if (!cartDiv) return;
-            const total = cartItems.reduce((s,i) => s + i.qty * i.price, 0);
-            cartDiv.innerHTML = `
-                <h3 class="font-bold text-lg mb-2">🛒 Panier</h3>
-                ${cartItems.map((item, idx) => `
-                    <div class="flex justify-between items-center border-b border-gray-700 py-2">
-                        <span><strong>${item.ref}</strong> - ${item.name}</span>
-                        <span>${item.qty} x ${item.price} DH</span>
-                        <button data-cartidx="${idx}" class="removeCartItem text-red-400 hover:text-red-300">❌</button>
-                    </div>
-                `).join('')}
-                <div class="font-bold mt-3 text-xl">Total: ${total} DH</div>
-                <div class="mt-4 flex flex-col gap-2">
-                    <input id="customerName" placeholder="Nom du client" class="w-full bg-gray-700 rounded-lg p-2">
-                    <div class="flex gap-2">
-                        <button id="sellCashBtn" class="btn-primary flex-1 text-white py-2 rounded-lg">💵 Espèce</button>
-                        <button id="sellCreditBtn" class="btn-warning flex-1 py-2 rounded-lg">📝 Crédit</button>
-                    </div>
-                </div>
-            `;
-            document.querySelectorAll('.removeCartItem').forEach(btn => {
-                btn.onclick = () => {
-                    cartItems.splice(parseInt(btn.dataset.cartidx), 1);
-                    renderCartUI();
-                };
+        // ========== SORTIE DE STOCK INTELLIGENTE ==========
+        async function withdrawStock(productId, currentQty, withdrawQty, reason) {
+            if (withdrawQty <= 0) throw new Error("Quantité invalide");
+            if (withdrawQty > currentQty) throw new Error("Stock insuffisant");
+            const newQty = currentQty - withdrawQty;
+            await db.ref('inventory/' + productId).update({ qty: newQty });
+            // Récupérer les infos produit pour l'historique
+            const prod = productsCache.find(p => p.id === productId);
+            await db.ref('history').push().set({
+                productId, productRef: prod?.ref, productName: prod?.designation,
+                quantity: withdrawQty, oldStock: currentQty, newStock: newQty,
+                reason, userId: currentUser.uid, userEmail: currentUser.email,
+                storeId: prod?.storeId, date: new Date().toISOString()
             });
-            document.getElementById('sellCashBtn')?.addEventListener('click', () => finalizeSale(false));
-            document.getElementById('sellCreditBtn')?.addEventListener('click', () => finalizeSale(true));
-        }
-
-        async function finalizeSale(isCredit) {
-            if (cartItems.length === 0) return alert("Panier vide");
-            const customer = document.getElementById('customerName')?.value.trim() || "Client inconnu";
-            for (let item of cartItems) {
-                const prodRef = db.ref('inventory/' + item.id);
-                const snap = await prodRef.once('value');
-                const currentStock = snap.val().qty;
-                if (currentStock < item.qty) {
-                    alert(`Stock insuffisant pour ${item.ref}`);
-                    return;
-                }
-                await prodRef.update({ qty: currentStock - item.qty });
-                // Historique de sortie
-                await db.ref('history').push().set({
-                    productId: item.id, productRef: item.ref, productName: item.name,
-                    quantity: item.qty, oldStock: currentStock, newStock: currentStock - item.qty,
-                    reason: "vente", userId: currentUser.uid, userEmail: currentUser.email,
-                    storeId: currentStoreId, date: new Date().toISOString()
-                });
-            }
-            const saleRef = db.ref('sales').push();
-            await saleRef.set({
-                items: cartItems, total: cartItems.reduce((s,i)=>s+i.qty*i.price,0),
-                customerName: customer, paid: !isCredit, date: new Date().toISOString(),
-                storeId: currentStoreId, sellerId: currentUser.uid
-            });
-            if (isCredit) {
-                await db.ref('debts').push().set({
-                    customerName: customer, amount: cartItems.reduce((s,i)=>s+i.qty*i.price,0),
-                    paid: false, saleId: saleRef.key, date: new Date().toISOString()
-                });
-            }
-            logAction(`Vente ${isCredit ? 'crédit' : 'espèce'} de ${cartItems.length} articles`);
-            cartItems = [];
-            renderCartUI();
-            renderCurrentTab();
-        }
-
-        // Scanner
-        function initBarcodeListener() {
-            document.removeEventListener('keydown', barcodeKeyHandler);
-            document.addEventListener('keydown', barcodeKeyHandler);
-        }
-        function barcodeKeyHandler(e) {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-            if (e.key === 'Enter') {
-                if (barcodeBuffer.length > 3) {
-                    e.preventDefault();
-                    searchAndAddProduct(barcodeBuffer);
-                    barcodeBuffer = "";
-                    if (barcodeTimeout) clearTimeout(barcodeTimeout);
-                }
-                return;
-            }
-            if (e.key.length === 1) {
-                barcodeBuffer += e.key;
-                if (barcodeTimeout) clearTimeout(barcodeTimeout);
-                barcodeTimeout = setTimeout(() => { barcodeBuffer = ""; }, 100);
-            }
-        }
-        async function searchAndAddProduct(barcode) {
-            const snapshot = await db.ref('inventory').orderByChild('ref').equalTo(barcode).once('value');
-            let product = null;
-            snapshot.forEach(child => {
-                const p = { id: child.key, ...child.val() };
-                if (currentUserRole !== 'super_admin' && p.storeId !== currentStoreId) return;
-                product = p;
-            });
-            if (!product) { alert("Produit non trouvé"); return; }
-            addToCart(product.id, product.ref, product.designation, product.salePrice, 1);
+            return newQty;
         }
 
         // ========== RENDU DES ONGLETS ==========
         function renderDashboard() {
             const role = currentUserRole;
             const tabs = [
-                { id: "dashboard", label: "📊 Dashboard", roles: ["super_admin","store-manager","vendeur"] },
+                { id: "dashboard", label: "📊 Tableau de bord", roles: ["super_admin","store-manager","vendeur"] },
                 { id: "pos", label: "🛒 Vente / Scanner", roles: ["super_admin","store-manager","vendeur"] },
-                { id: "inventory", label: "📦 Stock", roles: ["super_admin","store-manager","vendeur"] },
-                { id: "withdraw", label: "📤 Sortie", roles: ["super_admin","store-manager"] },
+                { id: "inventory", label: "📦 Gestion stock", roles: ["super_admin","store-manager","vendeur"] },
+                { id: "withdraw", label: "📤 Sortie de stock", roles: ["super_admin","store-manager"] },
                 { id: "history", label: "📜 Historique", roles: ["super_admin","store-manager"] },
                 { id: "reorder", label: "🔄 Réassort", roles: ["super_admin","store-manager"] },
-                { id: "transfers", label: "🚚 Transfert", roles: ["super_admin","store-manager"] },
+                { id: "transfers", label: "🚚 Transferts", roles: ["super_admin","store-manager"] },
                 { id: "expenses", label: "💰 Dépenses", roles: ["super_admin","store-manager"] },
-                { id: "credits", label: "💳 Crédits", roles: ["super_admin","store-manager","vendeur"] },
+                { id: "credits", label: "💳 Crédits clients", roles: ["super_admin","store-manager","vendeur"] },
                 { id: "stores", label: "🏪 Magasins", roles: ["super_admin"] },
                 { id: "users", label: "👥 Utilisateurs", roles: ["super_admin"] },
-                { id: "couriers", label: "🏍️ Livreurs", roles: ["super_admin","store-manager"] },
-                { id: "logs", label: "📋 Logs", roles: ["super_admin"] }
+                { id: "logs", label: "📋 Journaux", roles: ["super_admin"] }
             ];
             const tabNav = document.getElementById('tabNav');
             tabNav.innerHTML = tabs.filter(t => t.roles.includes(role)).map(t => `
-                <button data-tab="${t.id}" class="px-4 py-2 rounded-t-lg transition ${activeTab === t.id ? 'tab-active' : 'tab-inactive'}">
-                    ${t.label}
-                </button>
+                <button data-tab="${t.id}" class="tab ${activeTab === t.id ? 'tab-active' : 'tab-inactive'}">${t.label}</button>
             `).join('');
             document.querySelectorAll('[data-tab]').forEach(btn => {
-                btn.onclick = () => { activeTab = btn.dataset.tab; renderDashboard(); };
+                btn.onclick = () => { activeTab = btn.dataset.tab; renderCurrentTab(); };
             });
-            // Store selector
-            const storeSelector = document.getElementById('storeSelectorContainer');
-            if (role === "super_admin" || role === "store-manager") {
-                storeSelector.innerHTML = `<select id="storeSelect" class="bg-gray-800 border-gray-700 rounded-lg p-1 text-sm"><option value="">Tous</option>${storesList.map(s => `<option value="${s.id}" ${currentStoreId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}</select>`;
-                document.getElementById('storeSelect').onchange = (e) => { currentStoreId = e.target.value || null; renderCurrentTab(); };
-            } else {
-                const store = storesList.find(s => s.id === currentStoreId);
-                storeSelector.innerHTML = `<span class="text-gray-400">${store?.name || 'Magasin'}</span>`;
-            }
+            updateStoreSelector();
             renderCurrentTab();
         }
 
@@ -363,50 +257,126 @@
             else if (activeTab === "credits") await renderCredits(container);
             else if (activeTab === "stores") await renderStores(container);
             else if (activeTab === "users") await renderUsers(container);
-            else if (activeTab === "couriers") await renderCouriers(container);
             else if (activeTab === "logs") await renderLogs(container);
         }
 
-        // Dashboard
+        // -------------------- ÉCRANS (UI claire) --------------------
         async function renderDashboardHome(container) {
             const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
             const lowStock = products.filter(p => p.qty <= (p.min_threshold || 5));
             container.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass-card p-5">
-                        <h2 class="text-xl font-bold mb-3 text-[#ffcc00]">⚠️ Alertes Stock Faible</h2>
-                        ${lowStock.length ? lowStock.map(p => `<div class="low-stock bg-gray-800 p-3 rounded-lg mb-2 flex justify-between"><span><strong>${p.ref}</strong> ${p.designation}</span><span>Stock: ${p.qty} / Seuil: ${p.min_threshold||5}</span></div>`).join('') : '<p class="text-green-400">✅ Tout est approvisionné</p>'}
+                    <div class="card p-5">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3"><i class="fas fa-exclamation-triangle text-amber-500 mr-2"></i>Alertes stock faible</h2>
+                        ${lowStock.length ? lowStock.map(p => `<div class="alert-low p-3 rounded-lg mb-2 flex justify-between"><span><strong>${p.ref}</strong> - ${p.designation}</span><span class="font-mono">${p.qty} / seuil ${p.min_threshold||5}</span></div>`).join('') : '<p class="text-green-600">✅ Aucune alerte</p>'}
                     </div>
-                    <div class="glass-card p-5">
-                        <h2 class="text-xl font-bold mb-3">⚡ Actions rapides</h2>
-                        <button onclick="document.querySelector('[data-tab=\"pos\"]').click()" class="btn-primary w-full text-left p-2 rounded mb-2">🛒 Nouvelle vente</button>
-                        <button onclick="document.querySelector('[data-tab=\"inventory\"]').click()" class="btn-primary w-full text-left p-2 rounded mb-2">📦 Gérer le stock</button>
-                        <button onclick="document.querySelector('[data-tab=\"reorder\"]').click()" class="btn-warning w-full text-left p-2 rounded mb-2">📋 Commander réassort</button>
-                        <button id="exportExcelBtn" class="bg-green-700 w-full text-left p-2 rounded">📎 Exporter commandes (Excel)</button>
+                    <div class="card p-5">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">⚡ Actions rapides</h2>
+                        <button onclick="document.querySelector('[data-tab=\"pos\"]').click()" class="btn-primary w-full text-left text-white px-4 py-2 rounded-lg mb-2">🛒 Nouvelle vente</button>
+                        <button onclick="document.querySelector('[data-tab=\"inventory\"]').click()" class="btn-primary w-full text-left text-white px-4 py-2 rounded-lg mb-2">📦 Mettre à jour le stock</button>
+                        <button onclick="document.querySelector('[data-tab=\"reorder\"]').click()" class="bg-amber-500 w-full text-left text-white px-4 py-2 rounded-lg mb-2">📋 Voir commandes fournisseur</button>
                     </div>
                 </div>
             `;
-            document.getElementById('exportExcelBtn')?.addEventListener('click', async () => {
-                const products = await getProducts(null);
-                const low = products.filter(p => p.qty <= (p.min_threshold||5));
-                const data = low.map(p => ({ Référence: p.ref, Désignation: p.designation, Stock: p.qty, "À commander": Math.max((p.min_threshold||5)-p.qty+5,5), "Prix achat": p.purchasePrice }));
-                const ws = XLSX.utils.json_to_sheet(data);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Commandes");
-                XLSX.writeFile(wb, `commandes_${new Date().toISOString().slice(0,19)}.xlsx`);
-            });
         }
 
-        // POS avec client et paiement
+        // POS simplifié avec client et paiement
+        let cartItems = [];
+        let barcodeBuffer = "", barcodeTimeout = null;
+        function initBarcodeListener() {
+            document.removeEventListener('keydown', barcodeKeyHandler);
+            document.addEventListener('keydown', barcodeKeyHandler);
+        }
+        function barcodeKeyHandler(e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            if (e.key === 'Enter') {
+                if (barcodeBuffer.length > 3) {
+                    e.preventDefault();
+                    addProductByBarcode(barcodeBuffer);
+                    barcodeBuffer = "";
+                    if (barcodeTimeout) clearTimeout(barcodeTimeout);
+                }
+                return;
+            }
+            if (e.key.length === 1) {
+                barcodeBuffer += e.key;
+                if (barcodeTimeout) clearTimeout(barcodeTimeout);
+                barcodeTimeout = setTimeout(() => { barcodeBuffer = ""; }, 100);
+            }
+        }
+        async function addProductByBarcode(barcode) {
+            const product = productsCache.find(p => p.ref === barcode && (currentUserRole === 'super_admin' || p.storeId === currentStoreId));
+            if (!product) { alert("Produit non trouvé"); return; }
+            addToCart(product);
+        }
+        function addToCart(product, qty = 1) {
+            const existing = cartItems.find(i => i.id === product.id);
+            if (existing) existing.qty += qty;
+            else cartItems.push({ id: product.id, ref: product.ref, name: product.designation, price: product.salePrice, qty });
+            renderCartUI();
+        }
+        function renderCartUI() {
+            const cartDiv = document.getElementById('cartContainer');
+            if (!cartDiv) return;
+            const total = cartItems.reduce((s,i) => s + i.qty * i.price, 0);
+            cartDiv.innerHTML = `
+                <h3 class="font-bold text-gray-800 text-lg mb-3">🛒 Panier</h3>
+                ${cartItems.map((item, idx) => `
+                    <div class="flex justify-between items-center border-b py-2">
+                        <div><strong>${item.ref}</strong> - ${item.name}<br><span class="text-sm">${item.qty} x ${item.price} DH</span></div>
+                        <button data-cartidx="${idx}" class="removeCartItem text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `).join('')}
+                <div class="font-bold text-xl mt-3">Total : ${total} DH</div>
+                <div class="mt-4 space-y-2">
+                    <input id="customerName" placeholder="Nom du client" class="w-full">
+                    <div class="flex gap-2">
+                        <button id="sellCashBtn" class="btn-primary flex-1 text-white py-2 rounded-lg">💵 Paiement espèces</button>
+                        <button id="sellCreditBtn" class="bg-amber-500 flex-1 text-white py-2 rounded-lg">📝 Crédit client</button>
+                    </div>
+                </div>
+            `;
+            document.querySelectorAll('.removeCartItem').forEach(btn => {
+                btn.onclick = () => { cartItems.splice(parseInt(btn.dataset.cartidx),1); renderCartUI(); };
+            });
+            document.getElementById('sellCashBtn')?.addEventListener('click', () => finalizeSale(false));
+            document.getElementById('sellCreditBtn')?.addEventListener('click', () => finalizeSale(true));
+        }
+        async function finalizeSale(isCredit) {
+            if (cartItems.length === 0) return alert("Panier vide");
+            const customer = document.getElementById('customerName')?.value.trim() || "Client anonyme";
+            for (let item of cartItems) {
+                const prod = productsCache.find(p => p.id === item.id);
+                if (!prod || prod.qty < item.qty) { alert(`Stock insuffisant pour ${item.ref}`); return; }
+                await db.ref('inventory/' + item.id).update({ qty: prod.qty - item.qty });
+                await db.ref('history').push().set({
+                    productId: item.id, productRef: item.ref, productName: item.name,
+                    quantity: item.qty, oldStock: prod.qty, newStock: prod.qty - item.qty,
+                    reason: "vente", userId: currentUser.uid, userEmail: currentUser.email,
+                    storeId: prod.storeId, date: new Date().toISOString()
+                });
+            }
+            const total = cartItems.reduce((s,i)=>s+i.qty*i.price,0);
+            const saleRef = db.ref('sales').push();
+            await saleRef.set({ items: cartItems, total, customerName: customer, paid: !isCredit, date: new Date().toISOString(), storeId: currentStoreId, sellerId: currentUser.uid });
+            if (isCredit) {
+                await db.ref('debts').push().set({ customerName: customer, amount: total, paid: false, saleId: saleRef.key, date: new Date().toISOString() });
+            }
+            logAction(`Vente ${isCredit ? 'crédit' : 'espèce'} de ${cartItems.length} articles`);
+            cartItems = [];
+            renderCartUI();
+            renderCurrentTab();
+        }
+
         async function renderPOS(container) {
             container.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass-card p-5">
-                        <h2 class="text-xl font-bold mb-3">🔍 Recherche / Scanner</h2>
+                    <div class="card p-5">
+                        <h2 class="text-lg font-semibold mb-3">🔍 Recherche / Scanner</h2>
                         <input type="text" id="searchProduct" placeholder="Nom ou référence..." class="w-full mb-3">
                         <div id="searchResults" class="max-h-96 overflow-y-auto"></div>
                     </div>
-                    <div id="cartContainer" class="glass-card p-5"></div>
+                    <div id="cartContainer" class="card p-5"></div>
                 </div>
             `;
             initBarcodeListener();
@@ -417,146 +387,247 @@
                 if (kw.length < 2) return;
                 const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
                 const results = products.filter(p => p.designation.toLowerCase().includes(kw) || p.ref.toLowerCase().includes(kw));
-                const resultsDiv = document.getElementById('searchResults');
-                resultsDiv.innerHTML = results.slice(0,15).map(p => `
-                    <div class="bg-gray-800 p-3 rounded-lg mb-2 flex justify-between items-center">
-                        <div><strong>${p.ref}</strong> - ${p.designation}<br><span class="text-sm">${p.qty} dispo - ${p.salePrice} DH</span></div>
-                        <button data-id="${p.id}" data-ref="${p.ref}" data-name="${p.designation}" data-price="${p.salePrice}" class="addToCartBtn btn-primary text-white px-3 py-1 rounded">➕ Ajouter</button>
+                document.getElementById('searchResults').innerHTML = results.slice(0,15).map(p => `
+                    <div class="border rounded-lg p-3 mb-2 flex justify-between items-center">
+                        <div><strong>${p.ref}</strong> - ${p.designation}<br><span class="text-sm text-gray-500">Stock: ${p.qty} - ${p.salePrice} DH</span></div>
+                        <button data-id="${p.id}" data-ref="${p.ref}" data-name="${p.designation}" data-price="${p.salePrice}" class="addToCartBtn btn-primary text-white px-3 py-1 rounded">Ajouter</button>
                     </div>
                 `).join('');
                 document.querySelectorAll('.addToCartBtn').forEach(btn => {
-                    btn.onclick = () => addToCart(btn.dataset.id, btn.dataset.ref, btn.dataset.name, parseFloat(btn.dataset.price), 1);
+                    btn.onclick = () => {
+                        const product = { id: btn.dataset.id, ref: btn.dataset.ref, designation: btn.dataset.name, salePrice: parseFloat(btn.dataset.price) };
+                        addToCart(product);
+                    };
                 });
             });
         }
 
-        // Inventory, Withdraw, History, Reorder, Transfers, Expenses, Credits, Stores, Users, Logs (simplifiés mais fonctionnels)
+        // Inventory (avec mise à jour en temps réel)
         async function renderInventory(container) {
             const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
-            container.innerHTML = `<div class="glass-card p-5"><h2 class="text-2xl font-bold mb-4">📦 Stock</h2><button id="addProductBtn" class="btn-primary px-4 py-2 rounded mb-4">➕ Nouveau produit</button><div class="overflow-x-auto"><table class="w-full"><thead><tr><th>Ref</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>Prix Achat</th><th>Prix Vente</th><th>Actions</th></tr></thead><tbody id="invBody"></tbody></table></div></div>`;
+            container.innerHTML = `
+                <div class="card p-5">
+                    <div class="flex justify-between items-center flex-wrap gap-2 mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">📦 Stock</h2>
+                        <button id="addProductBtn" class="btn-primary text-white px-4 py-2 rounded-lg">+ Nouveau produit</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Référence</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>Prix achat</th><th>Prix vente</th><th>Actions</th></tr></thead>
+                            <tbody id="invBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
             const tbody = document.getElementById('invBody');
-            tbody.innerHTML = products.map(p => `<tr><td>${p.ref}</td><td>${p.designation}</td><td><input type="number" data-id="${p.id}" class="stockInput w-20 bg-gray-700 rounded p-1" value="${p.qty}"></td><td><input type="number" data-thresh="${p.id}" class="threshInput w-20 bg-gray-700 rounded p-1" value="${p.min_threshold||5}"></td><td>${p.purchasePrice} DH</td><td>${p.salePrice} DH</td><td><button data-id="${p.id}" class="updateBtn text-blue-400">💾</button> <button data-id="${p.id}" class="deleteBtn text-red-400">🗑️</button></td></tr>`).join('');
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td>${p.ref}</td><td>${p.designation}</td>
+                    <td><input type="number" data-id="${p.id}" class="stockInput w-20 border rounded p-1" value="${p.qty}"></td>
+                    <td><input type="number" data-id="${p.id}" class="threshInput w-20 border rounded p-1" value="${p.min_threshold || 5}"></td>
+                    <td>${p.purchasePrice} DH</td><td>${p.salePrice} DH</td>
+                    <td><button data-id="${p.id}" class="updateStockBtn text-blue-600 mr-2"><i class="fas fa-save"></i></button><button data-id="${p.id}" class="deleteProductBtn text-red-600"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            `).join('');
             document.getElementById('addProductBtn').onclick = async () => {
                 const ref = prompt("Référence"); const des = prompt("Désignation"); const qty = parseInt(prompt("Qté initiale"))||0; const price = parseFloat(prompt("Prix achat"));
-                if(ref && des && price) await db.ref('inventory').push().set({ ref, designation: des, qty, purchasePrice: price, salePrice: price*1.2, min_threshold:5, storeId: currentStoreId || storesList[0]?.id, createdAt: new Date().toISOString() });
-                renderCurrentTab();
+                if(ref && des && price) {
+                    await db.ref('inventory').push().set({ ref, designation: des, qty, purchasePrice: price, salePrice: price*1.2, min_threshold: 5, storeId: currentStoreId || (storesList[0]?.id), createdAt: new Date().toISOString() });
+                    logAction(`Ajout produit ${ref}`);
+                }
             };
-            document.querySelectorAll('.updateBtn').forEach(btn => btn.onclick = async () => {
-                const id = btn.dataset.id;
-                const newQty = parseInt(document.querySelector(`.stockInput[data-id="${id}"]`).value);
-                const newThresh = parseInt(document.querySelector(`.threshInput[data-id="${id}"]`).value);
-                await db.ref('inventory/'+id).update({ qty: newQty, min_threshold: newThresh });
-                renderCurrentTab();
+            document.querySelectorAll('.updateStockBtn').forEach(btn => {
+                btn.onclick = async () => {
+                    const id = btn.dataset.id;
+                    const newQty = parseInt(document.querySelector(`.stockInput[data-id="${id}"]`).value);
+                    const newThresh = parseInt(document.querySelector(`.threshInput[data-id="${id}"]`).value);
+                    await db.ref('inventory/'+id).update({ qty: newQty, min_threshold: newThresh });
+                    logAction(`Mise à jour stock ${id}`);
+                };
             });
-            document.querySelectorAll('.deleteBtn').forEach(btn => btn.onclick = async () => { if(confirm("Supprimer ?")) await db.ref('inventory/'+btn.dataset.id).remove(); renderCurrentTab(); });
+            document.querySelectorAll('.deleteProductBtn').forEach(btn => {
+                btn.onclick = async () => { if(confirm("Supprimer ?")) await db.ref('inventory/'+btn.dataset.id).remove(); logAction(`Produit supprimé ${btn.dataset.id}`); };
+            });
         }
 
         async function renderWithdraw(container) {
             const products = await getProducts(currentUserRole !== 'super_admin' ? currentStoreId : null);
-            container.innerHTML = `<div class="glass-card p-5"><h2 class="text-2xl font-bold mb-4">📤 Sortie de stock</h2><select id="prodSelect" class="w-full mb-3">${products.map(p => `<option value="${p.id}" data-stock="${p.qty}" data-name="${p.designation}">${p.ref} - ${p.designation} (stock: ${p.qty})</option>`).join('')}</select><input type="number" id="withdrawQty" placeholder="Quantité à retirer" class="w-full mb-3"><select id="reason" class="w-full mb-3"><option>vente</option><option>casse</option><option>transfert</option></select><button id="doWithdraw" class="btn-primary px-4 py-2 rounded">Effectuer retrait</button><div id="wMsg" class="mt-3"></div></div>`;
-            document.getElementById('doWithdraw').onclick = async () => {
-                const id = document.getElementById('prodSelect').value;
+            container.innerHTML = `
+                <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-4">📤 Sortie de stock (retrait intelligent)</h2>
+                    <div class="space-y-3">
+                        <select id="withdrawProduct" class="w-full">${products.map(p => `<option value="${p.id}" data-stock="${p.qty}" data-name="${p.designation}">${p.ref} - ${p.designation} (stock: ${p.qty})</option>`).join('')}</select>
+                        <input type="number" id="withdrawQty" placeholder="Quantité à retirer" class="w-full">
+                        <select id="withdrawReason" class="w-full"><option>vente</option><option>casse</option><option>transfert</option></select>
+                        <button id="doWithdrawBtn" class="btn-primary text-white px-4 py-2 rounded-lg">Effectuer le retrait</button>
+                        <div id="withdrawMsg" class="text-sm"></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('doWithdrawBtn').onclick = async () => {
+                const productId = document.getElementById('withdrawProduct').value;
                 const qty = parseInt(document.getElementById('withdrawQty').value);
-                const reason = document.getElementById('reason').value;
-                const selected = document.getElementById('prodSelect').options[document.getElementById('prodSelect').selectedIndex];
+                const reason = document.getElementById('withdrawReason').value;
+                const selected = document.getElementById('withdrawProduct').options[document.getElementById('withdrawProduct').selectedIndex];
                 const currentStock = parseInt(selected.dataset.stock);
-                if(qty > currentStock) { document.getElementById('wMsg').innerText = "Stock insuffisant"; return; }
-                const newStock = currentStock - qty;
-                await db.ref('inventory/'+id).update({ qty: newStock });
-                await db.ref('history').push().set({ productId: id, productRef: selected.text.split('-')[0], productName: selected.dataset.name, quantity: qty, oldStock: currentStock, newStock: newStock, reason, userId: currentUser.uid, date: new Date().toISOString() });
-                document.getElementById('wMsg').innerText = `Retrait effectué. Nouveau stock: ${newStock}`;
-                setTimeout(()=>renderCurrentTab(), 1000);
+                if (isNaN(qty) || qty <= 0) return document.getElementById('withdrawMsg').innerText = "Quantité invalide";
+                if (qty > currentStock) return document.getElementById('withdrawMsg').innerText = "Stock insuffisant";
+                await withdrawStock(productId, currentStock, qty, reason);
+                document.getElementById('withdrawMsg').innerText = `✅ Retrait effectué. Nouveau stock : ${currentStock - qty}`;
+                setTimeout(() => renderCurrentTab(), 1000);
             };
         }
 
         async function renderHistory(container) {
-            const snap = await db.ref('history').orderByChild('date').limitToLast(100).once('value');
-            const list = []; snap.forEach(c=>list.push(c.val()));
+            const snapshot = await db.ref('history').orderByChild('date').limitToLast(100).once('value');
+            const list = []; snapshot.forEach(c => list.push(c.val()));
             list.reverse();
-            container.innerHTML = `<div class="glass-card p-5"><h2 class="text-2xl font-bold mb-4">📜 Historique des sorties</h2><div class="overflow-x-auto"><table class="w-full"><thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Ancien stock</th><th>Nouveau</th><th>Motif</th><th>Utilisateur</th></tr></thead><tbody>${list.map(h => `<tr><td>${new Date(h.date).toLocaleString()}</td><td>${h.productRef}</td><td>${h.quantity}</td><td>${h.oldStock}</td><td>${h.newStock}</td><td>${h.reason}</td><td>${h.userEmail||''}</td></tr>`).join('')}</tbody></table></div></div>`;
+            container.innerHTML = `
+                <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-4">📜 Historique des mouvements</h2>
+                    <div class="table-container">
+                        <table><thead><tr><th>Date</th><th>Produit</th><th>Qté retirée</th><th>Ancien stock</th><th>Nouveau</th><th>Motif</th><th>Utilisateur</th></tr></thead>
+                        <tbody>${list.map(h => `<tr><td>${new Date(h.date).toLocaleString()}</td><td>${h.productRef}</td><td>${h.quantity}</td><td>${h.oldStock}</td><td>${h.newStock}</td><td>${h.reason}</td><td>${h.userEmail || ''}</td></tr>`).join('')}</tbody></table>
+                    </div>
+                </div>
+            `;
         }
 
         async function renderReorder(container) {
             const products = await getProducts(null);
             const low = products.filter(p => p.qty <= (p.min_threshold||5));
-            container.innerHTML = `<div class="glass-card p-5"><h2 class="text-2xl font-bold mb-4">🔄 Réassort</h2><table class="w-full"><thead><tr><th>Magasin</th><th>Réf</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>À commander</th></tr></thead><tbody>${low.map(p => `<tr><td>${storesList.find(s=>s.id===p.storeId)?.name||p.storeId}</td><td>${p.ref}</td><td>${p.designation}</td><td class="text-red-400">${p.qty}</td><td>${p.min_threshold||5}</td><td>${Math.max((p.min_threshold||5)-p.qty+5,5)}</td></tr>`).join('')}</tbody></table><button id="expCsv" class="btn-primary mt-4 px-4 py-2 rounded">📎 Exporter CSV</button></div>`;
-            document.getElementById('expCsv')?.addEventListener('click', () => {
-                let csv = "Réf,Designation,À commander\n"+low.map(p=>`${p.ref},${p.designation},${Math.max((p.min_threshold||5)-p.qty+5,5)}`).join("\n");
+            container.innerHTML = `
+                <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-4">🔄 Réassort automatique</h2>
+                    <div class="table-container">
+                        <table><thead><tr><th>Magasin</th><th>Référence</th><th>Désignation</th><th>Stock</th><th>Seuil</th><th>Quantité recommandée</th></tr></thead>
+                        <tbody>${low.map(p => `<tr><td>${storesList.find(s=>s.id===p.storeId)?.name||p.storeId}</td><td>${p.ref}</td><td>${p.designation}</td><td class="text-red-600">${p.qty}</td><td>${p.min_threshold||5}</td><td>${Math.max((p.min_threshold||5)-p.qty+5,5)}</td></tr>`).join('')}</tbody></table>
+                    </div>
+                    <button id="exportCsvBtn" class="btn-primary mt-4 text-white px-4 py-2 rounded-lg">📎 Exporter commandes (CSV)</button>
+                </div>
+            `;
+            document.getElementById('exportCsvBtn')?.addEventListener('click', () => {
+                let csv = "Référence,Désignation,Quantité recommandée\n"+low.map(p=>`${p.ref},${p.designation},${Math.max((p.min_threshold||5)-p.qty+5,5)}`).join("\n");
                 const blob = new Blob([csv], {type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="commandes.csv"; a.click();
             });
         }
 
-        async function renderTransfers(container) {
-            const transfers = []; (await db.ref('transfers').once('value')).forEach(c=>transfers.push(c.val()));
-            container.innerHTML = `<div class="glass-card p-5"><h2>🚚 Transfert</h2><div class="flex flex-wrap gap-2"><select id="fromStore">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select><select id="toStore">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select><input id="refProd" placeholder="Référence"><input id="qtyTransfer" type="number" placeholder="Qté"><button id="doTransfer" class="btn-primary px-3 py-1 rounded">Créer</button></div><div class="mt-4">${transfers.map(t=>`<div>${t.fromStore} → ${t.toStore} : ${t.ref} (${t.qty})</div>`).join('')}</div></div>`;
-            document.getElementById('doTransfer').onclick = async () => {
-                await db.ref('transfers').push().set({ fromStore: document.getElementById('fromStore').value, toStore: document.getElementById('toStore').value, ref: document.getElementById('refProd').value, qty: parseInt(document.getElementById('qtyTransfer').value), status: "en attente", createdAt: new Date().toISOString() });
-                renderCurrentTab();
-            };
+        async function renderTransfers(container) { /* version simplifiée */ container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold">🚚 Transferts inter-magasins</h2><p>Fonctionnalité en développement</p></div>`; }
+        async function renderExpenses(container) { container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold">💰 Dépenses</h2><p>Module à venir</p></div>`; }
+        async function renderCredits(container) { 
+            const debts = []; (await db.ref('debts').orderByChild('paid').equalTo(false).once('value')).forEach(c=>debts.push(c.val()));
+            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">💳 Crédits clients</h2><table class="w-full"><thead><tr><th>Client</th><th>Montant</th><th>Date</th><th>Action</th></tr></thead><tbody>${debts.map(d=>`<tr><td>${d.customerName}</td><td>${d.amount} DH</td><td>${new Date(d.date).toLocaleDateString()}</td><td><button data-id="${d.id}" class="payDebtBtn bg-green-600 text-white px-3 py-1 rounded">Marquer payé</button></td></tr>`).join('')}</tbody></table></div>`;
+            document.querySelectorAll('.payDebtBtn').forEach(btn => btn.onclick = async () => { await db.ref('debts/'+btn.dataset.id).update({paid:true}); renderCurrentTab(); });
         }
 
-        async function renderExpenses(container) {
-            const expenses = []; (await db.ref('expenses').once('value')).forEach(c=>expenses.push(c.val()));
-            container.innerHTML = `<div class="glass-card p-5"><h2>💰 Dépenses</h2><div class="flex gap-2"><input id="supplier" placeholder="Fournisseur"><input id="amount" type="number" placeholder="Montant"><input id="desc" placeholder="Motif"><button id="addExp" class="btn-primary px-3 py-1 rounded">Ajouter</button></div><div class="mt-4">${expenses.map(e=>`<div>${e.supplier} - ${e.amount} DH : ${e.desc}</div>`).join('')}</div></div>`;
-            document.getElementById('addExp').onclick = async () => { await db.ref('expenses').push().set({ supplier: document.getElementById('supplier').value, amount: parseFloat(document.getElementById('amount').value), desc: document.getElementById('desc').value, date: new Date().toISOString() }); renderCurrentTab(); };
-        }
-
-        async function renderCredits(container) {
-            const debts = []; (await db.ref('debts').orderByChild('paid').equalTo(false).once('value')).forEach(c=>debts.push({id:c.key,...c.val()}));
-            container.innerHTML = `<div class="glass-card p-5"><h2>💳 Crédits clients</h2><table class="w-full"><thead><tr><th>Client</th><th>Montant</th><th>Date</th><th>Action</th></tr></thead><tbody>${debts.map(d=>`<tr><td>${d.customerName}</td><td>${d.amount} DH</td><td>${new Date(d.date).toLocaleDateString()}</td><td><button data-id="${d.id}" class="payBtn bg-green-700 px-2 py-1 rounded">Payé</button></td></tr>`).join('')}</tbody></table></div>`;
-            document.querySelectorAll('.payBtn').forEach(btn => btn.onclick = async () => { await db.ref('debts/'+btn.dataset.id).update({paid:true}); renderCurrentTab(); });
-        }
-
-        // Gestion magasins corrigée
+        // ========== GESTION MAGASINS (temps réel avec écouteur) ==========
         async function renderStores(container) {
-            await loadStores();
-            container.innerHTML = `<div class="glass-card p-5"><h2>🏪 Magasins</h2><div class="flex gap-2 mb-4"><input id="newStoreName" placeholder="Nom" class="flex-1"><input id="newStoreLoc" placeholder="Adresse" class="flex-1"><button id="addStoreBtn" class="btn-primary px-4 py-2 rounded">➕ Ajouter</button></div><div id="storesListContainer">${storesList.map(s=>`<div class="flex justify-between items-center border-b border-gray-700 py-2"><div><strong>${s.name}</strong> - ${s.location||''}</div><button data-id="${s.id}" class="delStoreBtn bg-red-700 px-3 py-1 rounded text-sm">Supprimer</button></div>`).join('')}</div></div>`;
+            container.innerHTML = `
+                <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-4">🏪 Liste des magasins</h2>
+                    <div class="flex gap-2 mb-6">
+                        <input id="newStoreName" placeholder="Nom du magasin" class="flex-1">
+                        <input id="newStoreLoc" placeholder="Adresse" class="flex-1">
+                        <button id="addStoreBtn" class="btn-primary text-white px-4 py-2 rounded-lg">➕ Ajouter</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="storesTable">
+                            <thead><tr><th>Nom</th><th>Adresse</th><th>Actions</th></tr></thead>
+                            <tbody id="storesListBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            // Remplissage via l'écouteur temps réel (déjà actif)
+            function updateStoresTable() {
+                const tbody = document.getElementById('storesListBody');
+                if (tbody) {
+                    tbody.innerHTML = storesList.map(s => `
+                        <tr><td>${s.name}</td><td>${s.location || ''}</td><td><button data-id="${s.id}" class="deleteStoreBtn bg-red-500 text-white px-3 py-1 rounded text-sm">Supprimer</button></td></tr>
+                    `).join('');
+                    document.querySelectorAll('.deleteStoreBtn').forEach(btn => {
+                        btn.onclick = async () => { if(confirm("Supprimer ce magasin ?")) { await db.ref('stores/'+btn.dataset.id).remove(); logAction(`Magasin supprimé`); } };
+                    });
+                }
+            }
+            updateStoresTable();
+            // Réattacher l'événement d'ajout
             document.getElementById('addStoreBtn').onclick = async () => {
                 const name = document.getElementById('newStoreName').value.trim();
-                if(!name) return alert("Nom requis");
+                if (!name) return alert("Nom requis");
                 await db.ref('stores').push().set({ name, location: document.getElementById('newStoreLoc').value, createdAt: new Date().toISOString() });
-                await loadStores();
-                renderCurrentTab();
+                document.getElementById('newStoreName').value = '';
+                document.getElementById('newStoreLoc').value = '';
+                logAction(`Ajout magasin ${name}`);
             };
-            document.querySelectorAll('.delStoreBtn').forEach(btn => btn.onclick = async () => { if(confirm("Supprimer ce magasin ?")) { await db.ref('stores/'+btn.dataset.id).remove(); await loadStores(); renderCurrentTab(); } });
+            // Surveillance supplémentaire pour mise à jour dynamique (déjà via storesListener)
+            const observer = () => updateStoresTable();
+            if (storesListener) storesListener.off();
+            storesListener = db.ref('stores').on('value', (snapshot) => {
+                const stores = []; snapshot.forEach(child => stores.push({ id: child.key, ...child.val() }));
+                storesList = stores;
+                updateStoresTable();
+                updateStoreSelector();
+            });
         }
 
+        // ========== GESTION UTILISATEURS (temps réel) ==========
         async function renderUsers(container) {
-            const users = []; (await db.ref('users').once('value')).forEach(c=>users.push({id:c.key,...c.val()}));
-            container.innerHTML = `<div class="glass-card p-5"><h2>👥 Utilisateurs</h2><div class="flex gap-2 mb-4"><input id="userEmail" placeholder="Email"><select id="userRole"><option>manager</option><option>vendeur</option><option>super_admin</option></select><select id="userStore">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select><button id="createUserBtn" class="btn-primary px-3 py-1 rounded">Créer</button></div><div>${users.map(u=>`<div class="flex justify-between py-2 border-b"><span>${u.email} (${u.role})</span>${u.email !== currentUser?.email ? `<button data-id="${u.id}" class="delUserBtn text-red-400">Supprimer</button>` : ''}</div>`).join('')}</div></div>`;
-            document.getElementById('createUserBtn').onclick = async () => {
-                const email = document.getElementById('userEmail').value; const role = document.getElementById('userRole').value; const storeId = document.getElementById('userStore').value; const pwd = "password123";
-                try { const cred = await auth.createUserWithEmailAndPassword(email, pwd); await db.ref('users/'+cred.user.uid).set({ name: email.split('@')[0], email, role, storeId, createdAt: new Date().toISOString() }); alert(`Créé: ${email} / ${pwd}`); renderCurrentTab(); } catch(e){ alert(e.message); }
-            };
-            document.querySelectorAll('.delUserBtn').forEach(btn => btn.onclick = async () => { await db.ref('users/'+btn.dataset.id).remove(); renderCurrentTab(); });
-        }
-
-        // Gestion des livreurs (coureurs)
-        async function renderCouriers(container) {
-            const couriers = []; (await db.ref('couriers').once('value')).forEach(c=>couriers.push({id:c.key,...c.val()}));
-            container.innerHTML = `<div class="glass-card p-5"><h2>🏍️ Livreurs (Coureurs)</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"><input id="cName" placeholder="Nom complet" class="bg-gray-700"><input id="cVehicle" placeholder="Véhicule (moto/voiture)" class="bg-gray-700"><input id="cPhone" placeholder="Téléphone" class="bg-gray-700"><select id="cStatus" class="bg-gray-700"><option value="disponible">Disponible</option><option value="occupé">Occupé</option><option value="hors service">Hors service</option></select><button id="addCourierBtn" class="btn-primary col-span-2 py-2 rounded">➕ Ajouter un livreur</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="couriersList"></div></div>`;
-            const listDiv = document.getElementById('couriersList');
-            listDiv.innerHTML = couriers.map(c => `
-                <div class="bg-gray-800 rounded-xl p-3 flex justify-between items-center">
-                    <div><i class="fas fa-motorcycle mr-2"></i><strong>${c.name}</strong><br><span class="text-xs text-gray-400">${c.vehicle} - ${c.phone}</span><br><span class="text-xs ${c.status === 'disponible' ? 'text-green-400' : 'text-red-400'}">${c.status}</span></div>
-                    <button data-id="${c.id}" class="delCourierBtn text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+            container.innerHTML = `
+                <div class="card p-5">
+                    <h2 class="text-xl font-bold mb-4">👥 Gestion des utilisateurs</h2>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <input id="newUserEmail" placeholder="Email" class="flex-1">
+                        <select id="newUserRole" class="border rounded-lg p-2"><option value="manager">Manager</option><option value="vendeur">Vendeur</option><option value="super_admin">Super Admin</option></select>
+                        <select id="newUserStore" class="border rounded-lg p-2">${storesList.map(s=>`<option value="${s.id}">${s.name}</option>`)}</select>
+                        <button id="createUserBtn" class="btn-primary text-white px-4 py-2 rounded-lg">Créer</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="usersTable">
+                            <thead><tr><th>Email</th><th>Rôle</th><th>Magasin</th><th>Actions</th></tr></thead>
+                            <tbody id="usersListBody"></tbody>
+                        </table>
+                    </div>
                 </div>
-            `).join('');
-            document.getElementById('addCourierBtn').onclick = async () => {
-                const name = document.getElementById('cName').value.trim();
-                if(!name) return alert("Nom requis");
-                await db.ref('couriers').push().set({ name, vehicle: document.getElementById('cVehicle').value, phone: document.getElementById('cPhone').value, status: document.getElementById('cStatus').value, createdAt: new Date().toISOString() });
-                renderCurrentTab();
+            `;
+            const updateUsersTable = () => {
+                db.ref('users').once('value', (snapshot) => {
+                    const users = []; snapshot.forEach(c => users.push({ id: c.key, ...c.val() }));
+                    const tbody = document.getElementById('usersListBody');
+                    if (tbody) {
+                        tbody.innerHTML = users.map(u => `
+                            <tr><td>${u.email}</td><td><span class="badge ${u.role === 'super_admin' ? 'badge-admin' : (u.role === 'manager' ? 'badge-manager' : 'badge-vendeur')}">${u.role}</span></td><td>${storesList.find(s=>s.id===u.storeId)?.name || '-'}</td><td>${u.email !== currentUser?.email ? `<button data-id="${u.id}" class="deleteUserBtn bg-red-500 text-white px-3 py-1 rounded text-sm">Supprimer</button>` : '—'}</td></tr>
+                        `).join('');
+                        document.querySelectorAll('.deleteUserBtn').forEach(btn => {
+                            btn.onclick = async () => { if(confirm("Supprimer cet utilisateur ?")) await db.ref('users/'+btn.dataset.id).remove(); logAction(`Utilisateur supprimé`); };
+                        });
+                    }
+                });
             };
-            document.querySelectorAll('.delCourierBtn').forEach(btn => btn.onclick = async () => { await db.ref('couriers/'+btn.dataset.id).remove(); renderCurrentTab(); });
+            updateUsersTable();
+            document.getElementById('createUserBtn').onclick = async () => {
+                const email = document.getElementById('newUserEmail').value.trim();
+                const role = document.getElementById('newUserRole').value;
+                const storeId = document.getElementById('newUserStore').value;
+                const pwd = "password123";
+                try {
+                    const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+                    await db.ref('users/'+cred.user.uid).set({ name: email.split('@')[0], email, role, storeId, createdAt: new Date().toISOString() });
+                    alert(`Utilisateur créé. Mot de passe: ${pwd}`);
+                    updateUsersTable();
+                } catch(e) { alert("Erreur: "+e.message); }
+            };
+            // Écouteur temps réel pour les utilisateurs
+            db.ref('users').on('value', () => updateUsersTable());
         }
 
         async function renderLogs(container) {
-            const logs = []; (await db.ref('actionLogs').orderByChild('timestamp').limitToLast(50).once('value')).forEach(c=>logs.push(c.val()));
-            container.innerHTML = `<div class="glass-card p-5"><h2>📋 Logs</h2><ul class="list-disc pl-5">${logs.reverse().map(l=>`<li>${l.action} - ${l.user} - ${new Date(l.timestamp).toLocaleString()}</li>`).join('')}</ul></div>`;
+            const snapshot = await db.ref('actionLogs').orderByChild('timestamp').limitToLast(50).once('value');
+            const logs = []; snapshot.forEach(c => logs.push(c.val()));
+            container.innerHTML = `<div class="card p-5"><h2 class="text-xl font-bold mb-4">📋 Journal des actions</h2><ul class="list-disc pl-5 space-y-1">${logs.reverse().map(l=>`<li>${l.action} - ${l.user} - ${new Date(l.timestamp).toLocaleString()}</li>`).join('')}</ul></div>`;
         }
 
-        // Auth
+        // ========== AUTHENTIFICATION ==========
         loginBtn.onclick = async () => {
             const email = document.getElementById('loginEmail').value.trim();
             const pwd = document.getElementById('loginPassword').value;
@@ -564,12 +635,14 @@
             try {
                 const cred = await auth.signInWithEmailAndPassword(email, pwd);
                 const userData = await getOrCreateUserInRTDB(cred.user);
-                if (!userData || userData.role !== 'super_admin') throw new Error("Non autorisé");
+                if (!userData || userData.role !== 'super_admin') throw new Error("Accès refusé");
                 currentUser = { uid: cred.user.uid, email, role: userData.role, storeId: userData.storeId };
                 currentUserRole = userData.role;
                 currentStoreId = userData.storeId;
-                await loadStores();
                 document.getElementById('roleBadge').innerText = currentUserRole;
+                document.getElementById('roleBadge').className = `badge ${currentUserRole === 'super_admin' ? 'badge-admin' : 'badge-manager'}`;
+                await startStoresRealtime();
+                startInventoryRealtime();
                 authSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
                 renderDashboard();
@@ -581,8 +654,11 @@
             if (user) {
                 const ud = await getOrCreateUserInRTDB(user);
                 if (!ud || ud.role !== 'super_admin') { await auth.signOut(); authSection.classList.remove('hidden'); dashboardSection.classList.add('hidden'); }
-                else { currentUser = { uid: user.uid, email: user.email, role: ud.role, storeId: ud.storeId }; currentUserRole = ud.role; currentStoreId = ud.storeId; await loadStores(); document.getElementById('roleBadge').innerText = currentUserRole; authSection.classList.add('hidden'); dashboardSection.classList.remove('hidden'); renderDashboard(); }
-            } else { authSection.classList.remove('hidden'); dashboardSection.classList.add('hidden'); }
+                else { /* déjà géré par le login, mais on évite la double exécution */ }
+            } else {
+                authSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+            }
         });
     </script>
 </body>
