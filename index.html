@@ -129,7 +129,7 @@
             const container = document.getElementById('storeSelectorContainer');
             if (!container) return;
             if (currentUserRole === 'super_admin' || currentUserRole === 'store-manager') {
-                const options = storesList.map(s => `<option value="${s.id}" ${currentStoreId === s.id ? 'selected' : ''}>${s.name}</option>`);
+                const options = storesList.map(s => `<option value="${s.id}" ${currentStoreId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
                 container.innerHTML = `<select id="storeSelect" class="border rounded p-1 text-sm bg-gray-700"><option value="">Tous</option>${options}</select>`;
                 document.getElementById('storeSelect')?.addEventListener('change', (e) => { currentStoreId = e.target.value || null; renderCurrentTab(); });
             } else {
@@ -321,7 +321,7 @@
             ];
             if (role === "super_admin") {
                 tabs.push({ id: "stores", label: "🏢 Magasins", roles: ["super_admin"] });
-                tabs.push({ id: "users", label: "👥 Utilisateurs", roles: ["super_admin","store-manager"] });
+                tabs.push({ id: "users", label: "👥 Utilisateurs", roles: ["super_admin","store-manager","vendeur"] });
                 tabs.push({ id: "logs", label: "📜 Logs", roles: ["super_admin"] });
             }
             const tabNav = document.getElementById('tabNav');
@@ -597,7 +597,7 @@
                         <div class="flex flex-wrap gap-2 mb-6">
                             <input id="newUserEmail" placeholder="Email" class="flex-1">
                             <select id="newUserRole"><option value="manager">Manager</option><option value="vendeur">Vendeur</option>${currentUserRole === 'super_admin' ? '<option value="super_admin">Super Admin</option>' : ''}</select>
-                            <select id="newUserStore">${storesList.map(s => `<option value="${s.id}">${s.name}</option>`)}</select>
+                            <select id="newUserStore">${storesList.map(s => `<option value="${s.id}">${s.name}</option>`)}.join('')}</select>
                             <button id="createUserBtn" class="btn-primary text-white px-4 py-2 rounded-lg">Créer</button>
                         </div>
                     ` : '<p class="text-red-400 mb-4">⚠️ Seuls Super Admin ou Manager peuvent ajouter des utilisateurs.</p>'}
